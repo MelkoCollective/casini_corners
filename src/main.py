@@ -1,0 +1,58 @@
+'''
+Created on May 27, 2013
+
+@author: ghwatson
+'''
+
+# from scipy import optimize
+from scipy import optimize
+import scipy as sp
+from math import log
+from calculate import calculate_entropy, generate_square_lattice
+from tool.box import MapleLink
+
+if __name__ == '__main__':
+    
+    #TODO: Remove these hardcodings, and make them args. (n, maple_link, resolution)
+    
+    #TODO: Refactor this program, or aspects of it, into a class.
+    
+    # The Renyi index.
+    n = 1
+        
+    #TODO: Replace maplelink with sympy once they have elliptic integrals fully worked in.
+    #      Pull request here: 
+    #            https://github.com/sympy/sympy/pull/2165
+    #      Discussion on adding elliptic integrals here: 
+    #            http://colabti.org/irclogger/irclogger_log/sympy?date=2013-06-09#l151
+    #      My original query here:
+    #            http://stackoverflow.com/questions/16991997/decomposing-integral-into-elliptic-integrals/17013218?noredirect=1#comment24619933_17013218
+    
+    # Initiate MapleLink.
+    maple_link = MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
+
+    # Get the entropy for many different sizes of a polygon.
+    sizes = sp.linspace(10,100,10)
+    entropies = sp.zeros(sizes.shape)
+    
+    for count,L in enumerate(sizes):
+        # The array of points in the polygon defining region V.
+#         polygon = generate_square_lattice(L)
+        #DEBUGGING: hardwiring in desired L
+        polygon = generate_square_lattice(2)
+        
+        # Calculate the entropy
+        entropies[count] = calculate_entropy(polygon,n,maple_link)
+
+    #TODO: BELOW NOT YET TESTED IN ANY WAY.
+    
+    # Take all results and perform a fitting to find s_n:
+    
+    def func_to_fit(L,c0,c1,c2,c3,s_n):
+        # Note that the coefficient's names are not the same as Casini's notation.
+        return c0 + c1*L + c2*(1./L) + c3*(1./L**2) - 4*s_n*log(L)
+    
+    popt, pcov = optimize.curve_fit(func_to_fit,sizes,entropies)
+
+    s_n = popt[4]
+    print("Corner coefficient is %d",s_n)
