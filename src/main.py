@@ -9,7 +9,7 @@ from scipy import optimize
 import scipy as sp
 from math import log
 from calculate import calculate_entropy, generate_square_lattice, calculate_correlations
-from tool.box import MapleLink
+from maple import MapleLink
 
 if __name__ == '__main__':
     

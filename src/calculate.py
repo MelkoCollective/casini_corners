@@ -12,7 +12,8 @@ import sympy
 from sympy.mpmath import cos, sqrt, log, pi
 import sympy.mpmath
 
-from tool.box import maple_EllipticK, maple_EllipticE, maple_EllipticF, flatten
+from maple import maple_EllipticK, maple_EllipticE, maple_EllipticF
+from itertools import chain
 
 def calculate_correlations(polygon, maple_link):
     # Compute distance matrix of all possible pairs.
@@ -91,7 +92,7 @@ def calculate_entropy(X, P, n):
     sqrt_eigs = []
     for eig, mult in v.iteritems():
         sqrt_eigs.append([sqrt(sympy.re(sympy.N(eig,20)))] * mult)
-    sqrt_eigs = list(flatten(sqrt_eigs))
+    sqrt_eigs = list(chain.from_iterable((sqrt_eigs)))
         
     # Calculate entropy.
     S_n = 0
