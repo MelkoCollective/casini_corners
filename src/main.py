@@ -8,14 +8,12 @@ Created on May 27, 2013
 from scipy import optimize
 import scipy as sp
 from math import log
-from calculate import calculate_entropy, generate_square_lattice
+from calculate import calculate_entropy, generate_square_lattice, calculate_correlations
 from tool.box import MapleLink
 
 if __name__ == '__main__':
     
     #TODO: Remove these hardcodings, and make them args. (n, maple_link, resolution)
-    
-    #TODO: Refactor this program, or aspects of it, into a class.
     
     # The Renyi index.
     n = 1
@@ -42,7 +40,8 @@ if __name__ == '__main__':
         polygon = generate_square_lattice(2)
         
         # Calculate the entropy
-        entropies[count] = calculate_entropy(polygon,n,maple_link)
+        X,P = calculate_correlations(polygon,maple_link)
+        entropies[count] = calculate_entropy(X,P,n)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     
