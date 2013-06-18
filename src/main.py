@@ -40,7 +40,7 @@ if __name__ == '__main__':
         polygon = generate_square_lattice(2)
         
         # Calculate the entropy
-        X,P = calculate_correlations(polygon,maple_link)
+        X,P = calculate_correlations(polygon,maple_link,35,False)
         entropies[count] = calculate_entropy(X,P,n)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.

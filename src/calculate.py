@@ -12,10 +12,14 @@ import sympy
 from sympy.mpmath import cos, sqrt, log, pi
 import sympy.mpmath
 
-from maple import maple_EllipticK, maple_EllipticE, maple_EllipticF
+from maple import maple_EllipticK, maple_EllipticE, maple_EllipticF #TODO: The maple implementation is ugly, here.  Should pass namespace to the maple object at initiation.
 from itertools import chain
 
-def calculate_correlations(polygon, maple_link):
+def calculate_correlations(polygon, maple_link, precision,verbose=False):
+    
+    # Set the mpmath precision.
+    sympy.mpmath.mp.dps = precision
+    
     # Compute distance matrix of all possible pairs.
     D = spatial.distance.cdist(polygon,polygon)
     
@@ -57,13 +61,15 @@ def calculate_correlations(polygon, maple_link):
             return out*cos(j*y)
             
         # Perform the outer integrals.
-        sympy.mpmath.mp.dps = 35
         phi_integ = sympy.mpmath.quad(phi_inner_integral,[0,pi])
         pi_integ = sympy.mpmath.quad(pi_inner_integral,[0,pi])
                 
         # Save.
         unique_pi_correlations[idx_1d] = pi_integ*(1./(2*pi**2))
         unique_phi_correlations[idx_1d] = phi_integ*(1./(2*pi**2))
+        
+        if verbose == True:
+            print "Calculated integrals for i,j = {0}".format([i,j])
         
        
     # Populate matrix elements. 

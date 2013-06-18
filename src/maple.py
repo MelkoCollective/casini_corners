@@ -130,7 +130,3 @@ class MapleLink:
         # Add more parsing functionality here if needs grow.
          
         return py_str
-
-
-
-    
