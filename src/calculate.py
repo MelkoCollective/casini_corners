@@ -93,7 +93,13 @@ def calculate_entropy(X, P, n):
     for eig, mult in v.iteritems():
         sqrt_eigs.append([sqrt(sympy.re(sympy.N(eig,20)))] * mult)
     sqrt_eigs = list(chain.from_iterable((sqrt_eigs)))
-        
+    
+    # Check that the eigenvalues are well-defined.
+    for eig in sqrt_eigs:
+        if eig <= 0.5:
+            raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5!")
+    
+            
     # Calculate entropy.
     S_n = 0
     if n == 1:
