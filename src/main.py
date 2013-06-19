@@ -39,13 +39,16 @@ if __name__ == '__main__':
         #DEBUGGING: hardwiring in desired L
         polygon = generate_square_lattice(2)
         
+        print "Working on lattice size L={0}...".format(L)
+        
         # Calculate the entropy
-        X,P = calculate_correlations(polygon,maple_link,35,False)
-        entropies[count] = calculate_entropy(X,P,n)
+        X,P = calculate_correlations(polygon,maple_link,35,True)
+        entropies[count] = calculate_entropy(X,P,n,True)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     
     # Take all results and perform a fitting to find s_n:
+    print "Performing fit..."
     
     def func_to_fit(L,c0,c1,c2,c3,s_n):
         # Note that the coefficient's names are not the same as Casini's notation.

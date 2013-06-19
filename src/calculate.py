@@ -82,7 +82,7 @@ def calculate_correlations(polygon, maple_link, precision,verbose=False):
             
     return X,P
 
-def calculate_entropy(X, P, n):
+def calculate_entropy(X, P, n, verbose=False):
     '''
     Calculates the nth Renyi entropy for the polygonal set, as Casini does
     numerically in his paper.
@@ -116,6 +116,10 @@ def calculate_entropy(X, P, n):
             S_n += log((vk + 0.5)**n - (vk - 0.5)**n)
         S_n *= 1./(n-1)
         
+    if verbose==True:
+        print "Calculated entropy of {0}".format(S_n)
+        
+#     S_n = float(S_n)
     return S_n
 
 def generate_square_lattice(L):

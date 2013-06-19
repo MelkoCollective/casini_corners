@@ -43,9 +43,9 @@ class CorrelationsTest(unittest.TestCase):
         maplelink = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
                 
         # We just do for a particular case, for now, since slow.
-        lattice = calculate.generate_square_lattice(2)
+        lattice = calculate.generate_square_lattice(3)
         
-        cls.X,cls.P = calculate.calculate_correlations(lattice,maplelink)
+        cls.X,cls.P = calculate.calculate_correlations(lattice,maplelink,25, True)
         cls.XP = cls.X*cls.P
     
     def testSymmetric(self):
