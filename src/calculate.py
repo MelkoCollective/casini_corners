@@ -15,7 +15,7 @@ import sympy.mpmath
 from maple import maple_EllipticK, maple_EllipticE, maple_EllipticF #TODO: The maple implementation is ugly, here.  Should pass namespace to the maple object at initiation.
 from itertools import chain
 
-def calculate_correlations(polygon, maple_link, precision,verbose=False):
+def calculate_correlations(polygon, maple_link, precision, precomputed_correlations=None, verbose=False):
     
     # Set the mpmath precision.
     sympy.mpmath.mp.dps = precision
@@ -43,30 +43,40 @@ def calculate_correlations(polygon, maple_link, precision,verbose=False):
         # Take difference in coordinates of the pairs to get i,j (i.e. set origin
         # at r for calculating this correlator).
         [i,j] = polygon[r_prime] - polygon[r]
-                        
-        # Symbolically solve inner integral, using Maple:
-        phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(i)
-        phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
-        pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(i)
-        pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
-        inner_phi_str = maple_link.query(phi_integ_str)
-        inner_pi_str = maple_link.query(pi_integ_str)
+        dist_sq = i*i + j*j
+        
+        # Check if the correlations have already been found in the precomputed dictionary, otherwise compute them.
 
-        # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
-        def phi_inner_integral(y):
-            out = eval(inner_phi_str)
-            return out*cos(j*y)
-        def pi_inner_integral(y):
-            out = eval(inner_pi_str)
-            return out*cos(j*y)
-            
-        # Perform the outer integrals.
-        phi_integ = sympy.mpmath.quad(phi_inner_integral,[0,pi])
-        pi_integ = sympy.mpmath.quad(pi_inner_integral,[0,pi])
+        if dist_sq in precomputed_correlations.keys():
+            unique_phi_correlations[idx_1d], unique_pi_correlations[idx_1d] = precomputed_correlations[dist_sq]
+        else:
+            # Symbolically solve inner integral, using Maple:
+            phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(i)
+            phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
+            pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(i)
+            pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
+            inner_phi_str = maple_link.query(phi_integ_str)
+            inner_pi_str = maple_link.query(pi_integ_str)
+    
+            # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
+            def phi_inner_integral(y):
+                out = eval(inner_phi_str)
+                return out*cos(j*y)
+            def pi_inner_integral(y):
+                out = eval(inner_pi_str)
+                return out*cos(j*y)
                 
-        # Save.
-        unique_pi_correlations[idx_1d] = pi_integ*(1./(2*pi**2))
-        unique_phi_correlations[idx_1d] = phi_integ*(1./(2*pi**2))
+            # Perform the outer integrals.
+            phi_integ = sympy.mpmath.quad(phi_inner_integral,[0,pi])
+            pi_integ = sympy.mpmath.quad(pi_inner_integral,[0,pi])
+                    
+            # Save.
+            unique_phi_correlations[idx_1d] = phi_integ*(1./(2*pi**2))
+            unique_pi_correlations[idx_1d] = pi_integ*(1./(2*pi**2))
+            
+            # Save to precomputed_correlations for optimization of larger lattice calculations.
+            if precomputed_correlations is not None:
+                precomputed_correlations[dist_sq] = [unique_phi_correlations[idx_1d],unique_pi_correlations[idx_1d]]
         
         if verbose == True:
             print "Calculated integrals for i,j = {0}".format([i,j])
@@ -79,8 +89,11 @@ def calculate_correlations(polygon, maple_link, precision,verbose=False):
         for j in xrange(inv_idx.shape[1]):
             X[i,j] = unique_phi_correlations[inv_idx[i,j]]
             P[i,j] = unique_pi_correlations[inv_idx[i,j]]
-            
-    return X,P
+    
+    if precomputed_correlations is not None:
+        return X,P,precomputed_correlations
+    else:
+        return X,P
 
 def calculate_entropy(X, P, n, verbose=False):
     '''

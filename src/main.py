@@ -16,6 +16,8 @@ if __name__ == '__main__':
     
     # The Renyi index.
     n = 1
+    # Storage for correlations to pass to larger lattice sizes for optimization.
+    saved_correlations = {}
         
     #TODO: Replace maplelink with sympy once they have elliptic integrals fully worked in.
     #      Pull request here: 
@@ -31,6 +33,7 @@ if __name__ == '__main__':
     # Get the entropy for many different sizes of a polygon.
 #     sizes = sp.linspace(10,100,10)
     sizes = sp.array([2,4,7,10,15,20,30,40])
+    sizes = sp.array([2,3,4,5,6])
     entropies = sp.zeros(sizes.shape)
     
     for count,L in enumerate(sizes):
@@ -42,7 +45,7 @@ if __name__ == '__main__':
         print "Working on lattice size L={0}...".format(L)
         
         # Calculate the entropy
-        X,P = calculate_correlations(polygon,maple_link,35,True)
+        X,P,saved_correlations = calculate_correlations(polygon,maple_link,35,saved_correlations,True)
         entropies[count] = calculate_entropy(X,P,n,True)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
