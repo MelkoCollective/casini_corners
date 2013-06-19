@@ -7,7 +7,6 @@ Created on May 27, 2013
 # from scipy import optimize
 from scipy import optimize
 import scipy as sp
-from math import log
 from calculate import calculate_entropy, generate_square_lattice, calculate_correlations
 from maple import MapleLink
 
@@ -52,7 +51,7 @@ if __name__ == '__main__':
     
     def func_to_fit(L,c0,c1,c2,c3,s_n):
         # Note that the coefficient's names are not the same as Casini's notation.
-        return c0 + c1*L + c2*(1./L) + c3*(1./L**2) - 4*s_n*log(L)
+        return c0 + c1*L + c2*(1./L) + c3*(1./L**2) - 4*s_n*sp.log(L)
     
     popt, pcov = optimize.curve_fit(func_to_fit,sizes,entropies)
 
