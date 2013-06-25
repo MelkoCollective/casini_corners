@@ -107,8 +107,20 @@ class MapleLink:
             raise ValueError("There is no connection.")
         
         self.child.sendline(X)
-        self.child.expect('#--')
-        out = self.child.before
+        self.child.expect('#-->')
+        
+        # If the buffer is not empty, then that means the input took up more
+        # than 1 line. Additional work is required.
+        if self.child.buffer != '':
+            self.child.expect('#-->')
+            out = self.child.before #this required 2 primings of the expect.
+            
+            while self.child.buffer != '':
+                self.child.expect('#-->')
+                out+=self.child.before
+        else:
+            out = self.child.before
+    
         out = out[out.find(';')+1:].strip()
         out = ''.join(out.split('\r\n'))
         out = out.replace('\\','')
