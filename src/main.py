@@ -14,6 +14,7 @@ if __name__ == '__main__':
     
     #TODO: Remove these hardcodings, and make them args. (n, maple_link, resolution)
     
+    precision = 30
     # The Renyi index.
     n = 1
     # Storage for correlations to pass to larger lattice sizes for optimization.
@@ -41,8 +42,8 @@ if __name__ == '__main__':
         print "Working on lattice size L={0}...".format(L)
         
         # Calculate the entropy
-        X,P,saved_correlations = calculate_correlations(polygon,maple_link,35,saved_correlations,True)
-        entropies[count] = calculate_entropy(X,P,n,True)
+        X,P,saved_correlations = calculate_correlations(polygon,maple_link,precision,saved_correlations,True)
+        entropies[count] = calculate_entropy(X,P,n,precision,True)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     

@@ -95,7 +95,7 @@ def calculate_correlations(polygon, maple_link, precision, precomputed_correlati
     else:
         return X,P
 
-def calculate_entropy(X, P, n, verbose=False):
+def calculate_entropy(X, P, n,precision, verbose=False):
     '''
     Calculates the nth Renyi entropy for the polygonal set, as Casini does
     numerically in his paper.
@@ -107,18 +107,18 @@ def calculate_entropy(X, P, n, verbose=False):
 
     # Get the eigenvalues of sqrt(XP)
     XP = X*P
-#     v = XP.eigenvals()
-#     sqrt_eigs = []
-#     for eig, mult in v.iteritems():
-#         sqrt_eigs.append([sqrt(sympy.re(sympy.N(eig,precision)))] * mult)
-#     sqrt_eigs = list(chain.from_iterable((sqrt_eigs)))
+    v = XP.eigenvals()
+    sqrt_eigs = []
+    for eig, mult in v.iteritems():
+        sqrt_eigs.append([sqrt(sympy.re(sympy.N(eig,precision)))] * mult)
+    sqrt_eigs = list(chain.from_iterable((sqrt_eigs)))
     
     #Scipy eigenvalues.
     #TODO: see if this works, given mpmath structure.
-    XPnum = sympy.matrix2numpy(XP)
-    speigs = linalg.eigvals(XPnum)
-    sqrtspeigs = sp.sqrt(speigs)
-    sqrt_eigs = sqrtspeigs
+#     XPnum = sympy.matrix2numpy(XP)
+#     speigs = linalg.eigvals(XPnum)
+#     sqrtspeigs = sp.sqrt(speigs)
+#     sqrt_eigs = sqrtspeigs
     
     # Check that the eigenvalues are well-defined.
     for eig in sqrt_eigs:
@@ -128,7 +128,7 @@ def calculate_entropy(X, P, n, verbose=False):
             raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
     
     # Convert to float. Chop off imaginary component.
-    sqrt_eigs = sqrt_eigs.real
+#     sqrt_eigs = sqrt_eigs.real
     
     # Calculate entropy.
     S_n = 0
