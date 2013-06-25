@@ -56,20 +56,30 @@ def calculate_correlations(polygon, maple_link, precision, precomputed_correlati
             phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
             pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
             pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
-            inner_phi_str = maple_link.query(phi_integ_str)
-            inner_pi_str = maple_link.query(pi_integ_str)
+#             inner_phi_str = maple_link.query(phi_integ_str)
+#             inner_pi_str = maple_link.query(pi_integ_str)
+            inner_phi_str = maple_link.raw_query(phi_integ_str)
+            inner_pi_str = maple_link.raw_query(pi_integ_str)
     
-            # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
-            def phi_inner_integral(y):
-                out = eval(inner_phi_str)
-                return out*cos(int(j)*y)
-            def pi_inner_integral(y):
-                out = eval(inner_pi_str)
-                return out*cos(int(j)*y)
-            
-            # Perform the outer integrals.
-            phi_integ = sympy.mpmath.quad(phi_inner_integral,[0,pi])
-            pi_integ = sympy.mpmath.quad(pi_inner_integral,[0,pi])
+#             # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
+#             def phi_inner_integral(y):
+#                 out = eval(inner_phi_str)
+#                 return out*cos(int(j)*y)
+#             def pi_inner_integral(y):
+#                 out = eval(inner_pi_str)
+#                 return out*cos(int(j)*y)
+#             
+#             # Perform the outer integrals.
+#             phi_integ = sympy.mpmath.quad(phi_inner_integral,[0,pi])
+#             pi_integ = sympy.mpmath.quad(pi_inner_integral,[0,pi])
+
+            # Pass the strings back to maple to integrate again.
+            outer_phi_int = "evalf(int(cos({0}*y)*{1},y=0..Pi),{2});".format(int(j),inner_phi_str,precision)
+            outer_pi_int = "evalf(int(cos({0}*y)*{1},y=0..Pi),{2});".format(int(j),inner_pi_str,precision)
+            outer_phi_int = maple_link.raw_query(outer_phi_int)
+            outer_pi_int = maple_link.raw_query(outer_pi_int)
+            phi_integ = mpf(outer_phi_int)
+            pi_integ = mpf(outer_pi_int)
             
             # Save.
             unique_phi_correlations[idx_1d] = phi_integ*(mpf('1')/(2*pi**2))
