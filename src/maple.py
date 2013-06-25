@@ -7,7 +7,9 @@ A module for querying Maple.
 '''
 
 import pexpect
+import sympy.mpmath
 from sympy.mpmath import ellipe, ellipf, ellipk, asin
+import re
 
 def maple_EllipticE(z,k=None):
     '''
@@ -127,6 +129,13 @@ class MapleLink:
         for maple_entry,py_entry in self.replace_dict.iteritems():
             py_str = py_str.replace(maple_entry,py_entry)
          
-        # Add more parsing functionality here if needs grow.
+        # Wrap all integers in the mpf function, to allow arbitrary precision of
+        # evaluation of the expression.
+        # Assumes that no floats appear.
+        def replacer(matchobj):
+            newstr = "mpf('{0}')".format(matchobj.group(0))
+            return newstr
+        py_str = re.sub(r"\d+",replacer,py_str)
+         
          
         return py_str
