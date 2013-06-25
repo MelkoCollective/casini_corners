@@ -31,16 +31,12 @@ if __name__ == '__main__':
     maple_link = MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
 
     # Get the entropy for many different sizes of a polygon.
-#     sizes = sp.linspace(10,100,10)
-    sizes = sp.array([2,4,7,10,15,20,30,40])
-    sizes = sp.array([2,3,4,5,6])
+    sizes = sp.linspace(10,100,10)
     entropies = sp.zeros(sizes.shape)
     
     for count,L in enumerate(sizes):
         # The array of points in the polygon defining region V.
         polygon = generate_square_lattice(L)
-        #DEBUGGING: hardwiring in desired L
-#         polygon = generate_square_lattice(2)
         
         print "Working on lattice size L={0}...".format(L)
         
