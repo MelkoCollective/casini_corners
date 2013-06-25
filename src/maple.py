@@ -135,7 +135,7 @@ class MapleLink:
         def replacer(matchobj):
             newstr = "mpf('{0}')".format(matchobj.group(0))
             return newstr
-        py_str = re.sub(r"\d+",replacer,py_str)
+        py_str = re.sub(r"[-+]?[0-9]*\.?[0-9]+",replacer,py_str)
          
          
         return py_str
