@@ -114,10 +114,13 @@ class MapleLink:
         if self.child.buffer != '':
             self.child.expect('#-->')
             out = self.child.before #this required 2 primings of the expect.
-            
+            out = ''.join(out.split('\r\n')) 
+            out = out.replace('\\','')
             while self.child.buffer != '':
                 self.child.expect('#-->')
                 out+=self.child.before
+                out = ''.join(out.split('\r\n'))
+                out = out.replace('\\','')
         else:
             out = self.child.before
     
