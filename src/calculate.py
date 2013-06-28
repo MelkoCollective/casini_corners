@@ -145,9 +145,10 @@ def calculate_entropy(X, P, n,precision, verbose=False):
     
     # Calculate entropy.
     S_n = 0
+    my_eps = 1.e-8
     if n == 1:
         for vk in sqrt_eigs:
-            S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5))
+            S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5 + my_eps))
     else:
         for vk in sqrt_eigs:
             S_n += log((vk + 0.5)**n - (vk - 0.5)**n)
