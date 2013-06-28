@@ -79,7 +79,7 @@ class MapleLink:
         '''
         Spawn instance of maple.
         '''
-        self.child = pexpect.spawn(maple_dir)
+        self.child = pexpect.spawn(maple_dir,maxread=100000)
         self.child.expect('#--')
 
     def disconnect(self):
@@ -115,15 +115,20 @@ class MapleLink:
             self.child.expect('#-->')
             out = self.child.before #this required 2 primings of the expect.
             out = ''.join(out.split('\r\n')) 
+            out = ''.join(out.split('\r'))
             out = out.replace('\\','')
+            out = out.strip() # Assuming no important whitespace on ends?
             while self.child.buffer != '':
                 self.child.expect('#-->')
                 out+=self.child.before
                 out = ''.join(out.split('\r\n'))
+                out = ''.join(out.split('\r'))
                 out = out.replace('\\','')
+                out = out.strip()
+                print out
         else:
             out = self.child.before
-    
+                
         out = out[out.find(';')+1:].strip()
         out = ''.join(out.split('\r\n'))
         out = out.replace('\\','')
@@ -150,7 +155,7 @@ class MapleLink:
         def replacer(matchobj):
             newstr = "mpf('{0}')".format(matchobj.group(0))
             return newstr
-        py_str = re.sub(r"[-+]?[0-9]*\.?[0-9]+",replacer,py_str)
+        py_str = re.sub(r"[0-9]*\.?[0-9]+",replacer,py_str)
          
          
         return py_str
