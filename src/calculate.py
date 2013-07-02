@@ -57,43 +57,16 @@ class Calculate(object):
             if dist_sq in precomputed_correlations.keys():
                 unique_phi_correlations[idx_1d], unique_pi_correlations[idx_1d] = precomputed_correlations[dist_sq]
             else:
-                # Symbolically solve inner integral, using Maple:
-                phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-                phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
-                pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-                pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
-                inner_phi_str = maple_link.query(phi_integ_str)
-                inner_pi_str = maple_link.query(pi_integ_str)
-    #             inner_phi_str = maple_link.raw_query(phi_integ_str)
-    #             inner_pi_str = maple_link.raw_query(pi_integ_str)
-        
-                # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
-                def phi_inner_integral(y):
-                    out = eval(inner_phi_str)
-                    return out*cos(int(j)*y)
-                def pi_inner_integral(y):
-                    out = eval(inner_pi_str)
-                    return out*cos(int(j)*y)
-                 
-                # Perform the outer integrals.
-                phi_integ = sympy.mpmath.quad(extraprec(1000)(phi_inner_integral),[0,pi])
-                pi_integ = sympy.mpmath.quad(extraprec(1000)(pi_inner_integral),[0,pi])
     
-    #             # Pass the strings back to maple to integrate again.
-    #             outer_phi_int = "evalf(int(cos({0}*y)*({1}),y=0..Pi),{2});".format(int(j),inner_phi_str,precision)
-    #             outer_pi_int = "evalf(int(cos({0}*y)*({1}),y=0..Pi),{2});".format(int(j),inner_pi_str,precision)
-    #             outer_phi_int = maple_link.raw_query(outer_phi_int)
-    #             outer_pi_int = maple_link.raw_query(outer_pi_int)
-    #             phi_integ = mpf(outer_phi_int)
-    #             pi_integ = mpf(outer_pi_int)
+                phi_corr, pi_corr = Calculate.correlators_ij(i,j,maple_link)
                 
                 # Save.
-                unique_phi_correlations[idx_1d] = phi_integ*(mpf('1')/(2*pi**2))
-                unique_pi_correlations[idx_1d] = pi_integ*(mpf('1')/(2*pi**2))
+                unique_phi_correlations[idx_1d] = phi_corr
+                unique_pi_correlations[idx_1d] = pi_corr
                 
                 # Save to precomputed_correlations for optimization of larger lattice calculations.
                 if precomputed_correlations is not None:
-                    precomputed_correlations[dist_sq] = [unique_phi_correlations[idx_1d],unique_pi_correlations[idx_1d]]
+                    precomputed_correlations[dist_sq] = [phi_corr, pi_corr]
             
             if verbose == True:
                 print "Calculated integrals for i,j = {0}".format([i,j])
@@ -111,6 +84,53 @@ class Calculate(object):
             return X,P,precomputed_correlations
         else:
             return X,P
+        
+    @staticmethod
+    def correlators_ij(i, j, maple_link):
+        '''
+        Calculate the integral cos(ix)cos(jy)/sqrt(2(1-cos(x))+2(1-cos(y))) for x,y = -Pi..Pi.
+        This is done by computing the inner integral symbolically, and the outer numerically.
+        The integral is done on a quarter quadrant since it is symmetric.
+        
+        :param i: lattice index i
+        :param j: lattice index j
+        :param maple_link: the MapleLink class to communicate with Maple
+        '''
+        
+        # Symbolically solve inner integral, using Maple:
+        phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
+        phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
+        pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
+        pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
+        inner_phi_str = maple_link.query(phi_integ_str)
+        inner_pi_str = maple_link.query(pi_integ_str)
+#             inner_phi_str = maple_link.raw_query(phi_integ_str)
+#             inner_pi_str = maple_link.raw_query(pi_integ_str)
+
+        # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
+        def phi_inner_integral(y):
+            out = eval(inner_phi_str)
+            return out*cos(int(j)*y)
+        def pi_inner_integral(y):
+            out = eval(inner_pi_str)
+            return out*cos(int(j)*y)
+         
+        # Perform the outer integrals.
+        phi_integ = sympy.mpmath.quad(extraprec(1000)(phi_inner_integral),[0,pi])
+        pi_integ = sympy.mpmath.quad(extraprec(1000)(pi_inner_integral),[0,pi])
+
+#             # Pass the strings back to maple to integrate again.
+#             outer_phi_int = "evalf(int(cos({0}*y)*({1}),y=0..Pi),{2});".format(int(j),inner_phi_str,precision)
+#             outer_pi_int = "evalf(int(cos({0}*y)*({1}),y=0..Pi),{2});".format(int(j),inner_pi_str,precision)
+#             outer_phi_int = maple_link.raw_query(outer_phi_int)
+#             outer_pi_int = maple_link.raw_query(outer_pi_int)
+#             phi_integ = mpf(outer_phi_int)
+#             pi_integ = mpf(outer_pi_int)
+        
+        phi_integ *= mpf('1')/(2*pi**2)
+        pi_integ *= mpf('1')/(2*pi**2)
+        
+        return phi_integ,pi_integ
 
     @staticmethod
     def entropy(X, P, n,precision, verbose=False):
