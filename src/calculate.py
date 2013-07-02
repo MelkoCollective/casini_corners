@@ -22,7 +22,7 @@ class Calculate(object):
     '''
         
     @staticmethod
-    def correlations(polygon, maple_link, precision, precomputed_correlations=None, verbose=False):
+    def correlations(polygon, maple_link, precision, precomputed_correlations={}, verbose=False):
         
         # Set the mpmath precision.
         sympy.mpmath.mp.dps = precision
@@ -65,7 +65,7 @@ class Calculate(object):
                 unique_pi_correlations[idx_1d] = pi_corr
                 
                 # Save to precomputed_correlations for optimization of larger lattice calculations.
-                if precomputed_correlations is not None:
+                if precomputed_correlations is not {}:
                     precomputed_correlations[dist_sq] = [phi_corr, pi_corr]
             
             if verbose == True:
@@ -80,7 +80,7 @@ class Calculate(object):
                 X[i,j] = unique_phi_correlations[inv_idx[i,j]]
                 P[i,j] = unique_pi_correlations[inv_idx[i,j]]
         
-        if precomputed_correlations is not None:
+        if precomputed_correlations is not {}:
             return X,P,precomputed_correlations
         else:
             return X,P
