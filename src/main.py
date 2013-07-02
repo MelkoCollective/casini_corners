@@ -9,14 +9,14 @@ from scipy import optimize
 import scipy as sp
 from calculate import Calculate
 from maple import MapleLink
+import sys
 
 if __name__ == '__main__':
     
-    #TODO: Remove these hardcodings, and make them args. (n, maple_link, resolution)
+    precision = int(sys.argv[1])
+    n = int(sys.argv[2])
+    maple_dir = sys.argv[3]
     
-    precision = 30
-    # The Renyi index.
-    n = 1
     # Storage for correlations to pass to larger lattice sizes for optimization.
     saved_correlations = {}
         
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     #            http://stackoverflow.com/questions/16991997/decomposing-integral-into-elliptic-integrals/17013218?noredirect=1#comment24619933_17013218
     
     # Initiate MapleLink.
-    maple_link = MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
+    maple_link = MapleLink(maple_dir)
 
     # Get the entropy for many different sizes of a polygon.
     sizes = sp.linspace(10,100,10)
