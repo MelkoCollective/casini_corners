@@ -6,7 +6,8 @@ Created on Jun 17, 2013
 import unittest
 from nose.tools import eq_  # @UnresolvedImport
 
-import calculate, maple  # @UnresolvedImport
+import maple  # @UnresolvedImport
+from calculate import Calculate
 
 
 class LatticeTest(unittest.TestCase):
@@ -23,7 +24,7 @@ class LatticeTest(unittest.TestCase):
                 }
         
         for size in sizes:
-            lattice = calculate.generate_square_lattice(size)
+            lattice = Calculate.square_lattice(size)
             eq_(sets[size],set(tuple(tuple(x) for x in lattice)))
 
 
@@ -43,9 +44,9 @@ class CorrelationsTest(unittest.TestCase):
         maplelink = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
                 
         # We just do for a particular case, for now, since slow.
-        lattice = calculate.generate_square_lattice(3)
+        lattice = Calculate.square_lattice(3)
         
-        cls.X,cls.P = calculate.calculate_correlations(lattice,maplelink,25, True)
+        cls.X,cls.P = Calculate.correlations(lattice,maplelink,25, True)
         cls.XP = cls.X*cls.P
     
     def testSymmetric(self):
