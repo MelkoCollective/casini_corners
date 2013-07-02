@@ -7,7 +7,7 @@ Created on May 27, 2013
 # from scipy import optimize
 from scipy import optimize
 import scipy as sp
-from calculate import calculate_entropy, generate_square_lattice, calculate_correlations
+from calculate import Calculate
 from maple import MapleLink
 
 if __name__ == '__main__':
@@ -37,13 +37,13 @@ if __name__ == '__main__':
     
     for count,L in enumerate(sizes):
         # The array of points in the polygon defining region V.
-        polygon = generate_square_lattice(L)
+        polygon = Calculate.square_lattice(L)
         
         print "Working on lattice size L={0}...".format(L)
         
         # Calculate the entropy
-        X,P,saved_correlations = calculate_correlations(polygon,maple_link,precision,saved_correlations,True)
-        entropies[count] = calculate_entropy(X,P,n,precision,True)
+        X,P,saved_correlations = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
+        entropies[count] = Calculate.entropy(X,P,n,precision,True)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     
