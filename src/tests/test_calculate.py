@@ -71,7 +71,22 @@ class Correlator_ijTest(unittest.TestCase):
     # See if we match values from maple here (use varying precisions?)
     # Test symmetry of i,j.
     # Test entropy calculation somehow....(use matlab)
-    pass
+    def testSymmetry(self):
+        # Calculate for i,j and j,i. See if get same results.
+        
+        # Some random ijs.
+        ijs = [[1,2],[2,3],[3,5],[1,5],[2,8]]
+        
+        maple_link = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
+        precision = 20
+        
+        for ij in ijs:
+            i = ij[0]
+            j = ij[1]
+            phi_corr, pi_corr = Calculate.correlators_ij(i, j, maple_link, precision)
+            phi_corr2, pi_corr2 = Calculate.correlators_ij(j, i, maple_link, precision)
+            eq_(phi_corr,phi_corr2)
+            eq_(pi_corr,pi_corr2)
 
 class PrecisionTest(unittest.TestCase):
     # Try varying precisions, see if the precision increases accordingly.
@@ -79,46 +94,34 @@ class PrecisionTest(unittest.TestCase):
     pass
         
 class CalculationsTest(unittest.TestCase):
+    '''
+    Test logical features that result from the calculations.
+    '''
     
-    def polygonScrambleTest(self):
+    def testPolygonScramble(self):
         # Here, rearrange polygon randomly and repeatedly get results. See if come out different.
-        # Generate a poly.
+
+        # Presets.
         precision = 20
         maple_link = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu") #TODO: hopefully remove this maple dependency...too hardwirey.
+        L = 3
         
-        polygon = Calculate.square_lattice(5)
-        # Get eigenvals.
+        
+        polygon = Calculate.square_lattice(L)
+        
         X,P = Calculate.correlations(polygon, maple_link, precision)
 
         # Get eigenvals
         with sympy.mpmath.extraprec(500):
             XP = X*P
-    #         v = XP.eigenvals()
-    #         sqrt_eigs = []
-    #         for eig, mult in v.iteritems():
-    #             sqrt_eigs.append([sqrt(sympy.re(sympy.N(eig,precision)))] * mult)
-    #         sqrt_eigs = list(chain.from_iterable((sqrt_eigs)))
-        
-        #Scipy eigenvalues.
-        #TODO: see if this works, given mpmath structure.
         XPnum = sympy.matrix2numpy(XP)
-        speigs = linalg.eigvals(XPnum)
-        sqrtspeigs = sp.sqrt(speigs)
-        sqrt_eigs = sqrtspeigs
-        
-        # Check that the eigenvalues are well-defined.
-        for eig in sqrt_eigs:
-            if eig.real <= 0.5:
-                raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
-            if eig.imag != 0:
-                raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
-        
-        # Convert to float. Chop off imaginary component.
+        sqrt_eigs = sp.sqrt(linalg.eigvals(XPnum))
         sqrt_eigs_orig = sqrt_eigs.real
         
-        
-        # Scramble the indices and rebuild the poly.
+        # Scramble polygon.
         sp.random.shuffle(polygon)
+        
+        
         
         # Perform the integration again.        
         X,P = Calculate.correlations(polygon, maple_link, precision)
@@ -126,30 +129,15 @@ class CalculationsTest(unittest.TestCase):
         # Get eigenvals
         with sympy.mpmath.extraprec(500):
             XP = X*P
-    #         v = XP.eigenvals()
-    #         sqrt_eigs = []
-    #         for eig, mult in v.iteritems():
-    #             sqrt_eigs.append([sqrt(sympy.re(sympy.N(eig,precision)))] * mult)
-    #         sqrt_eigs = list(chain.from_iterable((sqrt_eigs)))
-        
-        #Scipy eigenvalues.
-        #TODO: see if this works, given mpmath structure.
         XPnum = sympy.matrix2numpy(XP)
-        speigs = linalg.eigvals(XPnum)
-        sqrtspeigs = sp.sqrt(speigs)
-        sqrt_eigs = sqrtspeigs
-        
-        # Check that the eigenvalues are well-defined.
-        for eig in sqrt_eigs:
-            if eig.real <= 0.5:
-                raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
-            if eig.imag != 0:
-                raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
-        
-        # Convert to float. Chop off imaginary component.
+        sqrt_eigs = sp.sqrt(linalg.eigvals(XPnum))
         sqrt_eigs_scrambled = sqrt_eigs.real
-        a = set(tuple(sqrt_eigs_orig))
-        b = set(tuple(sqrt_eigs_scrambled))
+        
+        
+        
+        # Compare.
+        a = set(tuple([round(float(x),10) for x in sqrt_eigs_orig]))
+        b = set(tuple([round(float(x),10) for x in sqrt_eigs_scrambled]))
         eq_(a,b)
 
     
