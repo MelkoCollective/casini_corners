@@ -58,7 +58,7 @@ class Calculate(object):
                 unique_phi_correlations[idx_1d], unique_pi_correlations[idx_1d] = precomputed_correlations[dist_sq]
             else:
     
-                phi_corr, pi_corr = Calculate.correlators_ij(i,j,maple_link)
+                phi_corr, pi_corr = Calculate.correlators_ij(i,j,maple_link,precision)
                 
                 # Save.
                 unique_phi_correlations[idx_1d] = phi_corr
@@ -86,7 +86,7 @@ class Calculate(object):
             return X,P
         
     @staticmethod
-    def correlators_ij(i, j, maple_link):
+    def correlators_ij(i, j, maple_link, precision):
         '''
         Calculate the integral cos(ix)cos(jy)/sqrt(2(1-cos(x))+2(1-cos(y))) for x,y = -Pi..Pi.
         This is done by computing the inner integral symbolically, and the outer numerically.
@@ -96,6 +96,8 @@ class Calculate(object):
         :param j: lattice index j
         :param maple_link: the MapleLink class to communicate with Maple
         '''
+        # Set the mpmath precision.
+        sympy.mpmath.mp.dps = precision
         
         # Symbolically solve inner integral, using Maple:
         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
