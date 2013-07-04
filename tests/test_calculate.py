@@ -4,16 +4,16 @@ Created on Jun 17, 2013
 @author: ghwatson
 '''
 import unittest
-from nose.tools import eq_  # @UnresolvedImport
+import random
 
-import maple  # @UnresolvedImport
-from calculate import Calculate
+from nose.tools import eq_  # @UnresolvedImport
 import sympy
 import sympy.mpmath
 import scipy as sp
 from scipy import linalg
-import random
 
+import maple  # @UnresolvedImport
+from calculate import Calculate
 
 
 class LatticeTest(unittest.TestCase):

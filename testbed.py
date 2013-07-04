@@ -346,18 +346,18 @@ if __name__ == '__main__':
 #     print entropy
 
     # Initiate MapleLink.
-    from maple import MapleLink
-    from calculate import Calculate
-    precision = 20
-    saved_correlations = None
-    
-    maple_link = MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
-      
-    polygon = Calculate.square_lattice(5)
-
-    X,P = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
-    
-    pass
+#     from maple import MapleLink
+#     from calculate import Calculate
+#     precision = 20
+#     saved_correlations = None
+#     
+#     maple_link = MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
+#       
+#     polygon = Calculate.square_lattice(5)
+# 
+#     X,P = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
+#     
+#     pass
 
 
 
@@ -438,3 +438,28 @@ if __name__ == '__main__':
 #     f.close()
 #     
 #     print 'done!'
+
+# Get linear chain values ----------------------------------------------------------------------
+
+    from maple import MapleLink
+    from calculate import Calculate
+    import scipy as sp
+    precision = 20
+    n = 1
+    saved_correlations = None
+    
+    maple_link = MapleLink("/opt/maple13/bin/maple -tu")
+      
+    polygons = []
+    polygons.append(sp.array([[0,0]]))
+    polygons.append(sp.array([[0,0],[1,0]]))
+    polygons.append(sp.array([[0,0],[1,0],[2,0]]))
+    polygons.append(sp.array([[0,0],[1,0],[2,0],[3,0]]))
+
+    ents = []
+    for polygon in polygons:
+        # Get this polygon's entropy.
+        X,P = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
+        ents.append(Calculate.entropy(X, P, n, precision))
+    
+    print ents

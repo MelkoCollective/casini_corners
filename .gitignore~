@@ -36,6 +36,3 @@ nosetests.xml
 
 # Mac
 .DS_Store
-
-# Rough code
-testbed.py
