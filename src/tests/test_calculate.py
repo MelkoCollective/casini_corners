@@ -45,15 +45,15 @@ class CorrelationsTest(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        
-        # Startup Maple. #TODO: Replace with sympy when they fix bug (see src.main). This is ugly since relying on a hardcoded dir.
-        maplelink = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
-                
-        # We just do for a particular case, for now, since slow.
-        lattice = Calculate.square_lattice(3)
-        
-        cls.X,cls.P = Calculate.correlations(lattice,maplelink,20)
-        cls.XP = cls.X*cls.P
+        if cls.X is None and cls.P is None:
+            # Startup Maple. #TODO: Replace with sympy when they fix bug (see src.main). This is ugly since relying on a hardcoded dir.
+            maplelink = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
+                    
+            # We just do for a particular case, for now, since slow.
+            lattice = Calculate.square_lattice(3)
+            
+            cls.X,cls.P = Calculate.correlations(lattice,maplelink,20)
+            cls.XP = cls.X*cls.P
     
     def testSymmetric(self):
         eq_(True,self.X.is_symmetric())
@@ -64,7 +64,8 @@ class CorrelationsTest(unittest.TestCase):
         eq_(True, self.P == self.P.conjugate())
         
     # Test the precomputed ability.
-    
+    def testPrecomputed(self):
+        pass
     
         
 class Correlator_ijTest(unittest.TestCase):
@@ -87,10 +88,30 @@ class Correlator_ijTest(unittest.TestCase):
             phi_corr2, pi_corr2 = Calculate.correlators_ij(j, i, maple_link, precision)
             eq_(phi_corr,phi_corr2)
             eq_(pi_corr,pi_corr2)
+            
+    def testValues(self):
+#         # Test values against maple values.
+#         maple_vals = []
+#         
+#         # Some random ijs.
+#         ijs = [[1,2],[2,3],[3,5],[1,5],[2,8], [10,10]]
+#         
+#         maple_link = maple.MapleLink("/Library/Frameworks/Maple.framework/Versions/12/bin/maple -tu")
+#         precision = 30
+#         
+#         for count, ij in enumerate(ijs):
+#             i = ij[0]
+#             j = ij[1]
+#             phi_corr, pi_corr = Calculate.correlators_ij(i, j, maple_link, precision)
+#             eq_(phi_corr,maple_vals[count][0])
+#             eq_(pi_corr,maple_vals[count][])
+        pass
 
 class PrecisionTest(unittest.TestCase):
     # Try varying precisions, see if the precision increases accordingly.
     #TODO: Just add this in to each of the other test cases.
+    # NOTE: this is too slow a thing to currently implement. Maybe in future
+    # when calculations are quicker.
     pass
         
 class CalculationsTest(unittest.TestCase):
@@ -140,6 +161,10 @@ class CalculationsTest(unittest.TestCase):
         b = set(tuple([round(float(x),10) for x in sqrt_eigs_scrambled]))
         eq_(a,b)
 
+    def testValues(self):    
+        # Test a diagonalization against matlab values.
+        pass
+    
     
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
