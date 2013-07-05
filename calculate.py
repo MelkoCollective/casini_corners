@@ -7,7 +7,7 @@ from __future__ import division
 
 from scipy import linalg, spatial
 import scipy as sp
-from sympy.mpmath import mpf, extraprec, cos, sqrt, log, pi
+from sympy.mpmath import mpf, extraprec, cos, sqrt, log, pi, linspace
 import sympy.mpmath
 # TODO: The maple implementation is ugly, here.  Should pass namespace to the 
 # maple object at initiation.
@@ -91,6 +91,11 @@ class Calculate(object):
         '''
         # Set the mpmath precision.
         sympy.mpmath.mp.dps = precision
+        
+        # Quicker if the higher frequency occurs in numerically solved outer
+        # integral.
+        if i>j:
+            i,j = j,i
         
         # Symbolically solve inner integral, using Maple:
         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
