@@ -122,7 +122,7 @@ class Calculate(object):
         return phi_integ,pi_integ
 
     @staticmethod
-    def entropy(X, P, n, precision, verbose=False):
+    def entropy(X, P, n, precision, truncate, verbose=False):
         '''
         Using the correlator matrices, find the nth entropy.
         :param X: spatial correlator matrix (sympy)
@@ -139,12 +139,20 @@ class Calculate(object):
         sqrt_eigs = sp.sqrt(linalg.eigvals(XPnum))
         
         # Check that the eigenvalues are well-defined.
-        for eig in sqrt_eigs:
+        to_remove = []
+        for i, eig in enumerate(sqrt_eigs):
             if eig.real <= 0.5:
-                raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
+                if truncate:
+                    # Remove the eigenvalue
+                    to_remove.append(i)
+                    pass
+                else:
+                    raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
             if eig.imag != 0:
                 raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
-        
+            
+        sqrt_eigs = sp.delete(sqrt_eigs,to_remove)
+       
         # Convert to float. Chop off imaginary component.
         sqrt_eigs = sqrt_eigs.real
         

@@ -37,7 +37,7 @@ if __name__ == '__main__':
         print "Working on lattice size L={0}...".format(L)
         polygon = Calculate.square_lattice(L)
         X,P,saved_correlations = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
-        entropies[count] = Calculate.entropy(X,P,n,precision,True)
+        entropies[count] = Calculate.entropy(X,P,n,precision, True, True)
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     # Fitting.
