@@ -153,7 +153,8 @@ class Calculate(object):
                 else:
                     raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
             if eig.imag != 0:
-                raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
+#                 raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
+                print "got an imaginary eigval: " + str(eig.imag)
             
         sqrt_eigs = sp.delete(sqrt_eigs,to_remove)
        
