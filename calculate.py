@@ -100,8 +100,10 @@ class Calculate(object):
         # Symbolically solve inner integral, using Maple:
         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
         phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
+        phi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(phi_str)
         pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
         pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
+        pi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(pi_str)
         inner_phi_str = maple_link.query(phi_integ_str)
         inner_pi_str = maple_link.query(pi_integ_str)
 
