@@ -1,3 +1,4 @@
+#!/usr/bin/python
 '''
 Created on May 27, 2013
 
@@ -13,7 +14,7 @@ Created on May 27, 2013
 
 import sys
 
-from scipy import optimize, zeros, linspace, log
+from scipy import optimize, zeros, linspace, log, array, arange
 
 from calculate import Calculate
 from maple import MapleLink
@@ -23,6 +24,7 @@ if __name__ == '__main__':
     precision = int(sys.argv[1])
     n = int(sys.argv[2])
     maple_dir = sys.argv[3]
+    fit_to = sys.argv[4]
     
     # Storage to avoid repeated computation of ij correlations.
     saved_correlations = {}
@@ -31,13 +33,15 @@ if __name__ == '__main__':
     maple_link = MapleLink(maple_dir)
 
     # Get the entropy for many different sizes of square lattice.
-    sizes = linspace(10,100,10)
+    sizes = arange(1,fit_to)
     entropies = zeros(sizes.shape)
     for count,L in enumerate(sizes):
         print "Working on lattice size L={0}...".format(L)
         polygon = Calculate.square_lattice(L)
         X,P,saved_correlations = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
         entropies[count] = Calculate.entropy(X,P,n,precision, True, True)
+        
+    # TODO: add entropy + size saving option.
 
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     # Fitting.
@@ -45,9 +49,13 @@ if __name__ == '__main__':
     
     def func_to_fit(L,c0,c1,c2,c3,s_n):
         # Note that the coefficient's names are not the same as Casini's notation.
-        return c0 + c1*L + c2*(1./L) + c3*(1./L**2) - 4*s_n*log(L)
+        return c0 + c1*L + c2*(1./L) + c3*(1./L**2) - s_n*log(L)
     
-    popt, pcov = optimize.curve_fit(func_to_fit,sizes,entropies)
+    p0 = [1,1,1,1,0.001]
+    popt, pcov = optimize.curve_fit(func_to_fit,sizes,entropies,p0)
 
     s_n = popt[4]
-    print("Corner coefficient is %d",s_n)
+    print "Corner coefficient is: " 
+    print s_n
+    print "covariances are: "
+    print pcov
