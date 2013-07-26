@@ -116,8 +116,10 @@ class Calculate(object):
             return out*cos(int(j)*y)
          
         # Perform the outer integrals.
-        phi_integ = sympy.mpmath.quad(extraprec(1000)(phi_inner_integral),[0,pi])
-        pi_integ = sympy.mpmath.quad(extraprec(1000)(pi_inner_integral),[0,pi])
+        phi_integ = sympy.mpmath.quad(extraprec(100)(phi_inner_integral),[0,pi])
+        pi_integ = sympy.mpmath.quad(extraprec(100)(pi_inner_integral),[0,pi])
+        if ((phi_integ == mpf('inf')) or (pi_integ == mpf('inf'))):
+            raise ValueError("Got correlator = inf. Need more guard bits!")
         phi_integ *= mpf('1')/(2*pi**2)
         pi_integ *= mpf('1')/(2*pi**2)
         
