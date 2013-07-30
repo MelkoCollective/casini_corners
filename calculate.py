@@ -7,7 +7,7 @@ from __future__ import division
 
 from scipy import linalg, spatial
 import scipy as sp
-from sympy.mpmath import mpf, extraprec, cos, sqrt, log, pi, linspace
+from sympy.mpmath import mpf, extraprec, cos, sqrt, log, pi, linspace, isinf, isnan
 import sympy.mpmath
 # TODO: The maple implementation is ugly, here.  Should pass namespace to the 
 # maple object at initiation.
@@ -17,8 +17,12 @@ class Calculate(object):
     '''
     Class containing calculations used in Casini's paper.
     '''
-    @staticmethod
-    def correlations(polygon, maple_link, precision, precomputed_correlations=None, verbose=False):
+    
+    _guard_start = 100 # Remembers the guard bits required to make the
+                       # calculation work.
+    
+#     @staticmethod
+    def correlations(self, polygon, maple_link, precision, precomputed_correlations=None, verbose=False):
         
         sympy.mpmath.mp.dps = precision
         D = spatial.distance.cdist(polygon,polygon)
@@ -49,7 +53,7 @@ class Calculate(object):
                 unique_phi_correlations[idx_1d], unique_pi_correlations[idx_1d] = precomputed_correlations[dist_sq]
             else:
     
-                phi_corr, pi_corr = Calculate.correlators_ij(i,j,maple_link,precision)
+                phi_corr, pi_corr = self.correlators_ij(i,j,maple_link,precision)
                 
                 # Save.
                 unique_phi_correlations[idx_1d] = phi_corr
@@ -77,8 +81,8 @@ class Calculate(object):
         else:
             return X,P
         
-    @staticmethod
-    def correlators_ij(i, j, maple_link, precision):
+#     @staticmethod
+    def correlators_ij(self, i, j, maple_link, precision):
         '''
         Calculate the integral cos(ix)cos(jy)/sqrt(2(1-cos(x))+2(1-cos(y))) for x,y = -Pi..Pi.
         This is done by computing the inner integral symbolically, and the outer numerically.
@@ -115,11 +119,22 @@ class Calculate(object):
             out = eval(inner_pi_str)
             return out*cos(int(j)*y)
          
-        # Perform the outer integrals.
-        phi_integ = sympy.mpmath.quad(extraprec(100)(phi_inner_integral),[0,pi])
-        pi_integ = sympy.mpmath.quad(extraprec(100)(pi_inner_integral),[0,pi])
-        if ((phi_integ == mpf('inf')) or (pi_integ == mpf('inf'))):
-            raise ValueError("Got correlator = inf. Need more guard bits!")
+        # Perform the outer integrals.  
+        # TODO: This blip of code is messy. There must be a more concise way 
+        #       to achieve the implemented efficiency + readability here.
+        def int_fail(integ):
+            return (isnan(phi_integ) or isinf(phi_integ))
+        for guard_bits in xrange(self._guard_start,1000,100):
+            phi_integ = sympy.mpmath.quad(extraprec(guard_bits)(phi_inner_integral),[0,pi])
+            if int_fail(phi_integ):
+                continue
+            pi_integ = sympy.mpmath.quad(extraprec(guard_bits)(pi_inner_integral),[0,pi])
+            if int_fail(pi_integ):
+                continue
+            self._guard_start = guard_bits
+            break
+        else:
+            raise ValueError("Hit guard bit tolerance of 1000!") #TODO: make this an input
         phi_integ *= mpf('1')/(2*pi**2)
         pi_integ *= mpf('1')/(2*pi**2)
         
@@ -164,6 +179,7 @@ class Calculate(object):
         # Calculate entropy.
         S_n = 0
         eps = 1.e-8
+        eps = 0 # DEBUGGING
         if n == 1:
             for vk in sqrt_eigs:
                 S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5 + eps))

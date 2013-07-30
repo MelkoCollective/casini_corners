@@ -19,12 +19,13 @@ from scipy import optimize, zeros, linspace, log, array, arange
 from calculate import Calculate
 from maple import MapleLink
 
-if __name__ == '__main__':
-    
+if __name__ == '__main__':    
     precision = int(sys.argv[1])
     n = int(sys.argv[2])
     maple_dir = sys.argv[3]
     fit_to = sys.argv[4]
+    
+    calc = Calculate()
     
     # Storage to avoid repeated computation of ij correlations.
     saved_correlations = {}
@@ -37,9 +38,9 @@ if __name__ == '__main__':
     entropies = zeros(sizes.shape)
     for count,L in enumerate(sizes):
         print "Working on lattice size L={0}...".format(L)
-        polygon = Calculate.square_lattice(L)
-        X,P,saved_correlations = Calculate.correlations(polygon,maple_link,precision,saved_correlations,True)
-        entropies[count] = Calculate.entropy(X,P,n,precision, True, True)
+        polygon = calc.square_lattice(L)
+        X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
+        entropies[count] = calc.entropy(X,P,n,precision, True, True)
         
     # TODO: add entropy + size saving option.
 
