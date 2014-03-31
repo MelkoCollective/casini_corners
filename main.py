@@ -19,7 +19,7 @@ from scipy import optimize, zeros, linspace, log, array, arange
 from calculate import Calculate
 from maple import MapleLink
 
-if __name__ == '__main__':    
+def main():
     precision = int(sys.argv[1])
     n = int(sys.argv[2])
     maple_dir = sys.argv[3]
@@ -60,3 +60,7 @@ if __name__ == '__main__':
     print s_n
     print "covariances are: "
     print pcov
+
+
+if __name__ == '__main__':    
+    main()
