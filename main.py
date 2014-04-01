@@ -18,18 +18,26 @@ from scipy import optimize, zeros, linspace, log, array, arange
 
 from calculate import Calculate
 from maple import MapleLink
+import pickle
 
 def main():
     precision = int(sys.argv[1])
     n = int(sys.argv[2])
     maple_dir = sys.argv[3]
-    fit_to = sys.argv[4]
+    fit_to = int(sys.argv[4])
+    load_pickle = bool(int(sys.argv[5]))
+    save_pickle = bool(int(sys.argv[6]))
     
     # Create an instance of the class used for computation.
     calc = Calculate()
     
-    # Storage to avoid repeated computation of ij correlations.
+    # Storage to avoid repeated computation of ij correlations. If desired,
+    # load in pickled correlators from a previous run.
     saved_correlations = {}
+    if load_pickle is True:
+        pkl_file = open('corrs.pkl', 'rb')
+        saved_correlations = pickle.load(pkl_file)
+        pkl_file.close()
         
     # Initiate MapleLink
     maple_link = MapleLink(maple_dir)
@@ -52,8 +60,12 @@ def main():
         X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
         entropies[count] = calc.entropy(X,P,n,precision, True, True)
         
-    # TODO: add entropy + size saving option.
-
+        # Save the 'saved' correlations to file for later use.
+        if save_pickle is True:
+            output = open('corrs.pkl','wb')
+            pickle.dump(saved_correlations,output,-1)
+            output.close()
+        
     #TODO: BELOW NOT YET TESTED IN ANY WAY.
     # Fitting.
     print "Performing fit..."
