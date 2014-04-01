@@ -79,7 +79,7 @@ class MapleLink:
         '''
         Spawn instance of maple.
         '''
-        self.child = pexpect.spawn(maple_dir,maxread=100000)
+        self.child = pexpect.spawn(maple_dir,timeout=3000,maxread=100000)
         self.child.expect('#--')
 
     def disconnect(self):
@@ -125,7 +125,7 @@ class MapleLink:
                 out = ''.join(out.split('\r'))
                 out = out.replace('\\','')
                 out = out.strip()
-                print out
+#                 print out
         else:
             out = self.child.before
                 
