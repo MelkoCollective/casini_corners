@@ -125,7 +125,7 @@ class Calculate(object):
         # TODO: This blip of code is messy. There must be a more concise way 
         #       to achieve the implemented efficiency + readability here.
         def int_fail(integ):
-            return (isnan(phi_integ) or isinf(phi_integ))
+            return (isnan(integ) or isinf(integ))
         for guard_bits in xrange(self._guard_start,1000,100):
             phi_integ = sympy.mpmath.quad(extraprec(guard_bits)(phi_inner_integral),[0,pi])
             if int_fail(phi_integ):
