@@ -63,8 +63,10 @@ class Calculate(object):
                 if precomputed_correlations is not None:
                     precomputed_correlations[dist_sq] = [phi_corr, pi_corr]
             
-            if verbose == True:
-                print "Calculated integrals for i,j = {0}".format([i,j])
+                if verbose == True:
+                    print "Calculated integrals for i,j = {0}:".format([i,j])
+                    print "phi: {0}".format(unique_phi_correlations[idx_1d])
+                    print "pi:  {0}".format(unique_pi_correlations[idx_1d])
             
         # --------------------------------------------------------------------
            
