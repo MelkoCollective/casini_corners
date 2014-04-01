@@ -25,6 +25,7 @@ def main():
     maple_dir = sys.argv[3]
     fit_to = sys.argv[4]
     
+    # Create an instance of the class used for computation.
     calc = Calculate()
     
     # Storage to avoid repeated computation of ij correlations.
@@ -32,12 +33,21 @@ def main():
         
     # Initiate MapleLink
     maple_link = MapleLink(maple_dir)
+    
+    # Print presets
+    print "START-------------------------------------"
+    print "------------------------------------------"
+    print "PARAMETERS:"
+    print "precision: {0}".format(precision)
+    print "Renyi index: {0}".format(n)
+    print "fit_to: {0}".format(fit_to)
+    print "------------------------------------------"
 
     # Get the entropy for many different sizes of square lattice.
     sizes = arange(1,fit_to)
     entropies = zeros(sizes.shape)
     for count,L in enumerate(sizes):
-        print "Working on lattice size L={0}...".format(L)
+        print "---------------Working on lattice size L={0}...".format(L)
         polygon = calc.square_lattice(L)
         X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
         entropies[count] = calc.entropy(X,P,n,precision, True, True)
