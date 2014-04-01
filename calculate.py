@@ -71,8 +71,16 @@ class Calculate(object):
         # --------------------------------------------------------------------
            
         # Populate matrix elements
-        X = sympy.zeros(inv_idx.shape[0],inv_idx.shape[1])
-        P = sympy.zeros(inv_idx.shape[0],inv_idx.shape[1])
+#         X = sympy.zeros(inv_idx.shape[0],inv_idx.shape[1])
+#         P = sympy.zeros(inv_idx.shape[0],inv_idx.shape[1])
+#         for i in xrange(inv_idx.shape[0]):
+#             for j in xrange(inv_idx.shape[1]):
+#                 X[i,j] = unique_phi_correlations[inv_idx[i,j]]
+#                 P[i,j] = unique_pi_correlations[inv_idx[i,j]]
+                
+        # Populate matrix elements
+        X = sp.zeros(inv_idx.shape)
+        P = sp.zeros(inv_idx.shape)
         for i in xrange(inv_idx.shape[0]):
             for j in xrange(inv_idx.shape[1]):
                 X[i,j] = unique_phi_correlations[inv_idx[i,j]]
@@ -152,12 +160,19 @@ class Calculate(object):
         :param precision: arithmetic precision 
         :param verbose: runtime output flag
         '''
-        with extraprec(500):
-            XP = X*P
+#         with extraprec(500):
+#             XP = X*P
+        XP = sp.dot(X,P)
         
+        # DEBUGGING: Saving the correlator matrices.
+        prec = sympy.mpmath.mp.dps
+        sp.savetxt("xmat.txt", X, fmt='%.{0}f'.format(prec),delimiter=",")
+        sp.savetxt("pmat.txt",P, fmt='%.{0}f'.format(prec),delimiter=",")
+                
         # Scipy eigenvalues
-        XPnum = sympy.matrix2numpy(XP)
-        sqrt_eigs = sp.sqrt(linalg.eigvals(XPnum))
+#         XPnum = sympy.matrix2numpy(XP)
+#         sqrt_eigs = sp.sqrt(linalg.eigvals(XPnum.astype(sp.float32)))
+        sqrt_eigs = sp.sqrt(linalg.eigvals(XP))
         
         # Check that the eigenvalues are well-defined.
         to_remove = []
@@ -171,7 +186,7 @@ class Calculate(object):
                     raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
             if eig.imag != 0:
 #                 raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
-                print "got an imaginary eigval: " + str(eig.imag)
+                print "Warning: got an imaginary eigvalue component: " + str(eig.imag)
             
         sqrt_eigs = sp.delete(sqrt_eigs,to_remove)
        
@@ -180,11 +195,12 @@ class Calculate(object):
         
         # Calculate entropy.
         S_n = 0
-        eps = 1.e-8
+#         eps = 1.e-12
         eps = 0 # DEBUGGING
         if n == 1:
             for vk in sqrt_eigs:
-                S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5 + eps))
+#                 S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5 + eps))
+                S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5))
         else:
             for vk in sqrt_eigs:
                 S_n += log((vk + 0.5)**n - (vk - 0.5)**n)
