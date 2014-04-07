@@ -22,72 +22,47 @@ class Calculate(object):
                        # calculation work.
     
 #     @staticmethod
-    def correlations(self, polygon, maple_link, precision, precomputed_correlations=None, verbose=False):
+    def correlations(self, polygon, maple_link, precision, correlators=None, verbose=False):
         
         sympy.mpmath.mp.dps = precision
-        D = spatial.distance.cdist(polygon,polygon)
         
-        # Find unique distances
-        [unique,idx_1d,inv_idx] = sp.unique(D,True,True)
+        # Find all displacement vectors.
+        dist_vects = [abs(p1-p2) for p1 in polygon for p2 in polygon]
         
-        # Convert 1d indices to 2d indices
-        idx_2d = sp.unravel_index(idx_1d,D.shape)
-        idx_2d = sp.dstack((idx_2d[0],idx_2d[1]))[0]
+        # The correlators depend symmetrically on i,j. To optimize calculations,
+        # trim down to the effectively unique displacement vectors.
+        dist_vects_ordered = [sp.array([p[1],p[0]]) if p[0] > p[1] else p for p in dist_vects]
+        unique_ij = list(set(tuple(p) for p in dist_vects_ordered))
         
-        # Unflatten inv_idx
-        inv_idx = sp.reshape(inv_idx,D.shape)
-          
-        # Calculate all distinct correlator values for V ---------------------
-        
-        unique_phi_correlations = sympy.mpmath.zeros(unique.shape[0],1) 
-        unique_pi_correlations = sympy.mpmath.zeros(unique.shape[0],1)
-        
-        for idx_1d, [r,r_prime] in enumerate(idx_2d):
-            
-            # Since the correlators only depend on distance, set r to origin.
-            [i,j] = polygon[r_prime] - polygon[r]
-            dist_sq = i*i + j*j
-            
-            # Check if correlators already computed, otherwise compute.
-            if precomputed_correlations is not None and dist_sq in precomputed_correlations.keys():
-                unique_phi_correlations[idx_1d], unique_pi_correlations[idx_1d] = precomputed_correlations[dist_sq]
+        # Allocate X and P.
+        n = len(polygon)
+        X = sp.zeros((n,n))
+        P = sp.zeros((n,n))
+
+        # Get all the unique correlators.
+        for [i,j] in unique_ij:
+            if correlators is not None and (i,j) in correlators.keys():
+                phi_corr, pi_corr = correlators[(i,j)]
             else:
-    
                 phi_corr, pi_corr = self.correlators_ij(i,j,maple_link,precision)
                 
-                # Save.
-                unique_phi_correlations[idx_1d] = phi_corr
-                unique_pi_correlations[idx_1d] = pi_corr
-                
-                # Save to precomputed_correlations for optimization of larger lattice calculations.
-                if precomputed_correlations is not None:
-                    precomputed_correlations[dist_sq] = [phi_corr, pi_corr]
-            
                 if verbose == True:
                     print "Calculated integrals for i,j = {0}:".format([i,j])
-                    print "phi: {0}".format(unique_phi_correlations[idx_1d])
-                    print "pi:  {0}".format(unique_pi_correlations[idx_1d])
-            
-        # --------------------------------------------------------------------
-           
-        # Populate matrix elements
-#         X = sympy.zeros(inv_idx.shape[0],inv_idx.shape[1])
-#         P = sympy.zeros(inv_idx.shape[0],inv_idx.shape[1])
-#         for i in xrange(inv_idx.shape[0]):
-#             for j in xrange(inv_idx.shape[1]):
-#                 X[i,j] = unique_phi_correlations[inv_idx[i,j]]
-#                 P[i,j] = unique_pi_correlations[inv_idx[i,j]]
+                    print "phi: {0}".format(phi_corr)
+                    print "pi:  {0}".format(pi_corr)
                 
-        # Populate matrix elements
-        X = sp.zeros(inv_idx.shape)
-        P = sp.zeros(inv_idx.shape)
-        for i in xrange(inv_idx.shape[0]):
-            for j in xrange(inv_idx.shape[1]):
-                X[i,j] = unique_phi_correlations[inv_idx[i,j]]
-                P[i,j] = unique_pi_correlations[inv_idx[i,j]]
-         
-        if precomputed_correlations is not None:
-            return X,P,precomputed_correlations
+            correlators[(i,j)] = [phi_corr, pi_corr]
+            
+        # Fill out X,P.
+        for n1,p1 in enumerate(polygon):
+            for n2,p2 in enumerate(polygon):
+                [i,j] = abs(p1-p2)
+                if i > j:
+                    i,j = j,i
+                X[n1,n2],P[n1,n2] = correlators[(i,j)]
+            
+        if correlators is not None:
+            return X,P,correlators
         else:
             return X,P
         
