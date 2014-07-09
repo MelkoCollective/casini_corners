@@ -5,6 +5,8 @@ Original code by paul McGuire (see old header below). Wrapped in a class and
 altered to allow variables defined at evaluation time, and the ability to parse
 functions with more than one argument.
 
+Strings can be evaluated to arbitrary precision, with the use of sympy.mpmath.
+
 Note: The implementation only handles unary and binary functions, but can be
 easily expanded.
 
@@ -27,12 +29,16 @@ import operator
 from functools import partial
 from itertools import chain
 from copy import deepcopy
+import sympy.mpmath as mpm
 
 # Parses mathematical expressions. The user is capable of expanding the grammar
 # if desired. Currently only handles unary and binary functions.
 class math_parser:
     
-    def __init__( self, var_names=None, extra_opn=None, extra_fn=None, extra_bin_fn=None ):
+    def __init__( self, var_names=None, extra_opn=None, extra_fn=None, extra_bin_fn=None,precision=15 ):
+        mpm.mp.dps = precision
+        self.mpfing = True # Flag to switch between casting numbers with mpf or float
+        
         # For parsing
         self.exprStack = [] # The parsed results, ordered for recursive
                             # evaluation.
@@ -155,8 +161,10 @@ class math_parser:
             return vars[op]
         elif op[0].isalpha():
             return 0
+        elif not self.mpfing:
+            return float(op)
         else:
-            return float( op )
+            return mpm.mpf(op)
     
     
     # USER FUNCTIONS
