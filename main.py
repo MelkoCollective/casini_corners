@@ -40,7 +40,7 @@ def main():
         pkl_file.close()
         
     # Initiate MapleLink
-    maple_link = MapleLink(maple_dir)
+    maple_link = MapleLink(maple_dir,precision)
     
     # Print presets
     print "START-------------------------------------"
@@ -72,9 +72,9 @@ def main():
     
     def func_to_fit(L,c0,c1,c2,c3,s_n):
         # Note that the coefficient's names are not the same as Casini's notation.
-        return c0 + c1*L + c2*(1./L) + c3*(1./L**2) - s_n*log(L)
+        return c0 + c1*(L) + c2*(1./(L)) + c3*(1./(L)**2) - s_n*log(L)
     
-    p0 = [1,1,1,1,0.001]
+    p0 = [1,1,1,1,0.05]
     popt, pcov = optimize.curve_fit(func_to_fit,sizes,entropies,p0)
 
     s_n = popt[4]

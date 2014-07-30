@@ -13,6 +13,8 @@ import sympy.mpmath
 # maple object at initiation.
 from maple import maple_EllipticK, maple_EllipticE, maple_EllipticF
 
+import re
+
 class Calculate(object):
     '''
     Class containing calculations used in Casini's paper.
@@ -87,21 +89,62 @@ class Calculate(object):
             i,j = j,i
         
         # Symbolically solve inner integral, using Maple:
+#         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
+#         phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
+#         phi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(phi_str)
+#         pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
+#         pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
+#         pi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(pi_str)
+#         inner_phi_str = maple_link.query(phi_integ_str)
+#         inner_pi_str = maple_link.query(pi_integ_str)
+#         
+#         
+#         def replacer(matchobj):
+#             newstr = "mpf('{0}')".format(matchobj.group(0))
+#             return newstr
+#         inner_phi_str_old = re.sub(r"[0-9]*\.?[0-9]+",replacer,inner_phi_str)
+#         inner_pi_str_old = re.sub(r"[0-9]*\.?[0-9]+",replacer,inner_pi_str)
+#         
+#         replace_dict = {'^':'**'}
+#         for maple_entry,py_entry in replace_dict.iteritems():
+#             inner_phi_str_old = inner_phi_str_old.replace(maple_entry,py_entry)
+#             inner_pi_str_old = inner_pi_str_old.replace(maple_entry,py_entry)
+ 
+        # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
+#         def phi_inner_integral(y):
+#             out = eval(inner_phi_str)
+#             return out*cos(int(j)*y)
+#         def pi_inner_integral(y):
+#             out = eval(inner_pi_str)
+#             return out*cos(int(j)*y)
+        
+        # New code here:
         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-        phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
+#         phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
         phi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(phi_str)
         pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-        pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
+#         pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
         pi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(pi_str)
-        inner_phi_str = maple_link.query(phi_integ_str)
-        inner_pi_str = maple_link.query(pi_integ_str)
 
-        # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
+#         inner_phi_str = maple_link.query(phi_integ_str)
+#         maple_link.parse(inner_phi_str)
+#         phi_stack = maple_link.get_parsed_stack()
+
+        inner_pi_str = maple_link.query(pi_integ_str)
+        maple_link.parse(inner_pi_str)
+        pi_stack = maple_link.get_parsed_stack()
+
+        inner_phi_str = maple_link.query(phi_integ_str)
+        maple_link.parse(inner_phi_str)
+        phi_stack = maple_link.get_parsed_stack()
+        
         def phi_inner_integral(y):
-            out = eval(inner_phi_str)
+            vars = {'y':y}
+            out = maple_link.eval_stack(phi_stack, vars)
             return out*cos(int(j)*y)
         def pi_inner_integral(y):
-            out = eval(inner_pi_str)
+            vars = {'y':y}
+            out = maple_link.eval_stack(pi_stack, vars)
             return out*cos(int(j)*y)
          
         # Perform the outer integrals.  
