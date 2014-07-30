@@ -10,6 +10,10 @@ Strings can be evaluated to arbitrary precision, with the use of sympy.mpmath.
 Note: The implementation only handles unary and binary functions, but can be
 easily expanded.
 
+BUGS:
+- There is a bug where if you define a function starting with 'E' or 'PI',
+  then the parser will mess up.
+
 @author: ghwatson
 '''
 
@@ -35,8 +39,9 @@ import sympy.mpmath as mpm
 # if desired. Currently only handles unary and binary functions.
 class math_parser:
     
-    def __init__( self, var_names=None, extra_opn=None, extra_fn=None, extra_bin_fn=None,precision=15 ):
-        mpm.mp.dps = precision
+    def __init__( self, var_names=None, extra_opn=None, extra_fn=None, extra_bin_fn=None,extra_dynamic_fn=None,precision=None ):
+        if precision:
+            mpm.mp.dps = precision
         self.mpfing = True # Flag to switch between casting numbers with mpf or float
         
         # For parsing
@@ -57,15 +62,17 @@ class math_parser:
                 "*" : operator.mul,
                 "/" : operator.truediv,
                 "^" : operator.pow }
-        self.fn  = { "sin" : math.sin,
-                "cos" : math.cos,
-                "tan" : math.tan,
+        self.fn  = { "sin" : mpm.sin,
+                "cos" : mpm.cos,
+                "tan" : mpm.tan,
                 "abs" : abs,
                 "trunc" : lambda a: int(a),
                 "round" : round,
                 "sgn" : lambda a: abs(a)>self.epsilon and cmp(a,0) or 0}
         # binary functions
         self.bin_fn = {}
+        # functions that can take on a variable number of arguments.
+        self.dynamic_fn = {}
     
         # The user can append additional elements to the syntax dictionaries
         if extra_opn:
@@ -74,6 +81,8 @@ class math_parser:
             self.fn = dict(chain(self.fn.iteritems(), extra_fn.iteritems()))
         if extra_bin_fn:
             self.bin_fn = dict(chain(self.bin_fn.iteritems(), extra_bin_fn.iteritems()))
+        if extra_dynamic_fn:
+            self.dynamic_fn = dict(chain(self.dynamic_fn.iteritems(), extra_dynamic_fn.iteritems()))
     
     
     # INTERNAL FUNCTIONS (user functions further below)
@@ -112,18 +121,22 @@ class math_parser:
             div   = Literal( "/" )
             lpar  = Literal( "(" ).suppress()
             rpar  = Literal( ")" ).suppress()
-            comma = Literal( "," ).suppress()
+#             comma = Literal( "," ).suppress()
+            comma = Literal( "," )
             addop  = plus | minus
             multop = mult | div
             expop = Literal( "^" )
             pi    = CaselessLiteral( "PI" )
-            vars = [Literal(i) for i in self.var_names]
+            var_list = [Literal(i) for i in self.var_names]
             
             expr = Forward()
             arg_func = Forward()
-            or_vars = MatchFirst(vars)
-            atom = (Optional("-") + ( pi | e | fnumber | ident + lpar + delimitedList(Group(expr)) + rpar | or_vars ).setParseAction( self._pushFirst ) | ( lpar + delimitedList(Group(expr)).suppress() + rpar ) ).setParseAction(self._pushUMinus) 
+            or_vars = MatchFirst(var_list)
+#             atom = (Optional("-") + ( pi | e | fnumber | ident + lpar + delimitedList(Group(expr)) + rpar | or_vars ).setParseAction( self._pushFirst ) | ( lpar + delimitedList(Group(expr)).suppress() + rpar ) ).setParseAction(self._pushUMinus) 
+            atom = (Optional("-") + ( pi | e | fnumber | ident + lpar + arg_func + rpar | or_vars ).setParseAction( self._pushFirst ) | \
+                     ( lpar + arg_func.suppress() + rpar ) ).setParseAction(self._pushUMinus) 
             
+#             expr + ZeroOrMore( "," + expr )
             # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left exponents, instead of left-to-righ
             # that is, 2^3^2 = 2^(3^2), not (2^3)^2.
             factor = Forward()
@@ -131,34 +144,48 @@ class math_parser:
             
             term = factor + ZeroOrMore( ( multop + factor ).setParseAction( self._pushFirst ) )
             expr << term + ZeroOrMore( ( addop + term ).setParseAction( self._pushFirst ) )
+            arg_func << expr + ZeroOrMore( (comma + expr).setParseAction( self._pushFirst))
             self.bnf = expr
         return self.bnf
     
-    # Evaluate the string s. vars is a dictionary containing the variable values
+    # Evaluate the string s. var_list is a dictionary containing the variable values
     # corresponding to the string segments in s. Ex:
-    # vars = {'x':x,'y':y}  'x+y' -> x+y
-    # vars = {'x1':x,'x2':y,'x3':z} 'x1+x2+x3' -> x+y+z
-    def _evaluateStack(self, s, vars={}):
+    # var_list = {'x':x,'y':y}  'x+y' -> x+y
+    # var_list = {'x1':x,'x2':y,'x3':z} 'x1+x2+x3' -> x+y+z
+    def _evaluateStack(self, s, var_list={}):
         # Evaluate.
         op = s.pop()
+        if op == ',':
+            op = s.pop()
         if op == 'unary -':
-            return -self._evaluateStack( s,vars )
+            return -self._evaluateStack( s,var_list )
         if op in "+-*/^":
-            op2 = self._evaluateStack( s,vars )
-            op1 = self._evaluateStack( s,vars )
+            op2 = self._evaluateStack( s,var_list )
+            op1 = self._evaluateStack( s,var_list )
             return self.opn[op]( op1, op2 )
         elif op == "PI":
             return math.pi # 3.1415926535
         elif op == "E":
             return math.e  # 2.718281828
         elif op in self.fn:
-            return self.fn[op]( self._evaluateStack( s,vars ) )
+            return self.fn[op]( self._evaluateStack( s,var_list ) )
         elif op in self.bin_fn:
-            op2 = self._evaluateStack( s,vars )
-            op1 = self._evaluateStack( s,vars )
-            return self.bin_fn[op]( op1, op2 )
-        elif op in vars:
-            return vars[op]
+            op2 = self._evaluateStack( s,var_list )
+            if s is not []:
+                op1 = self._evaluateStack( s,var_list )
+                return self.bin_fn[op]( op1, op2 )
+            else:
+                return self.bin_fn[op](op2)
+        elif op in self.dynamic_fn:
+            ops = []
+            # TODO: Complete this elif clause
+            # Iterate through comma-separated arguments and collect arguments
+            # into ops.
+            while s[-1] !=',':
+                ops.append(self._evaluateStack(s, var_list))
+            return self.fn[op](*reversed(ops))
+        elif op in var_list:
+            return var_list[op]
         elif op[0].isalpha():
             return 0
         elif not self.mpfing:
@@ -169,16 +196,18 @@ class math_parser:
     
     # USER FUNCTIONS
         
+    def get_stack(self):
+        return deepcopy(self.exprStack)
         
     def parse(self,string):
         self.exprStack = []
         self.results = self._BNF().parseString( string )
         
     # Just a wrapper for _evaluateStack (see above) which stops 
-    # the instance's copy of the stack from being emptied upon evaluation.
-    def value_of_stack(self,vars={}):
-        local_stack = deepcopy(self.exprStack)
-        return self._evaluateStack(local_stack, vars)
+    # the input's copy of the stack from being emptied upon evaluation.
+    def value_of_stack(self,stack,var_list={}):
+        local_stack = deepcopy(stack)
+        return self._evaluateStack(local_stack, var_list)
         
 if __name__ == "__main__":
     
@@ -188,7 +217,7 @@ if __name__ == "__main__":
     # variable values
     x = 0.4
     y = 0.5
-    vars = {'x':x,'y':y}
+    var_list = {'x':x,'y':y}
     
     # Instantiate parser, with the added binary function
     parser = math_parser(extra_bin_fn = bin_fn)
@@ -197,7 +226,7 @@ if __name__ == "__main__":
         parser.parse(s)
         results = parser.results
         exprStack = parser.exprStack
-        val = parser.value_of_stack(vars)
+        val = parser.value_of_stack(exprStack,var_list)
  
         if val == expVal:
             print s, "=", val, results, "=>", exprStack
