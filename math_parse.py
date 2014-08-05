@@ -13,6 +13,7 @@ easily expanded.
 BUGS:
 - There is a bug where if you define a function starting with 'E' or 'PI',
   then the parser will mess up.
+- a string like '-(-X)' where X is some expression(s) does not currently work.
 
 @author: ghwatson
 '''
@@ -178,12 +179,18 @@ class math_parser:
                 return self.bin_fn[op](op2)
         elif op in self.dynamic_fn:
             ops = []
-            # TODO: Complete this elif clause
-            # Iterate through comma-separated arguments and collect arguments
-            # into ops.
-            while s[-1] !=',':
-                ops.append(self._evaluateStack(s, var_list))
-            return self.fn[op](*reversed(ops))
+            # This if clause will parse through a comma separated list of arguments
+            # until there is no more.
+            if s[-1] is ',':
+                s.pop()
+                while True:
+                    ops.append(self._evaluateStack(s, var_list))
+                    if s[-1] != ',':
+                        break
+                    else:
+                        s.pop()
+            ops.append(self._evaluateStack(s, var_list))
+            return self.dynamic_fn[op](*reversed(ops))
         elif op in var_list:
             return var_list[op]
         elif op[0].isalpha():
