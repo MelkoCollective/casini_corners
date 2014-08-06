@@ -13,7 +13,6 @@ easily expanded.
 BUGS:
 - There is a bug where if you define a function starting with 'E' or 'PI',
   then the parser will mess up.
-- a string like '-(-X)' where X is some expression(s) does not currently work.
 
 @author: ghwatson
 '''
