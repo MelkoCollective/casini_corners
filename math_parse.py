@@ -94,8 +94,8 @@ class math_parser:
     def _pushUMinus(self, strg, loc, toks ):
         if toks and toks[0]=='-': 
             self.exprStack.append( 'unary -' )
-            #~ exprStack.append( '-1' )
-            #~ exprStack.append( '*' )
+#             self.exprStack.append( '-1' )
+#             self.exprStack.append( '*' )
     
     def _BNF(self):
         """
@@ -134,8 +134,8 @@ class math_parser:
             arg_func = Forward()
             or_vars = MatchFirst(var_list)
 #             atom = (Optional("-") + ( pi | e | fnumber | ident + lpar + delimitedList(Group(expr)) + rpar | or_vars ).setParseAction( self._pushFirst ) | ( lpar + delimitedList(Group(expr)).suppress() + rpar ) ).setParseAction(self._pushUMinus) 
-            atom = (Optional("-") + ( pi | e | fnumber | ident + lpar + arg_func + rpar | or_vars ).setParseAction( self._pushFirst ) | \
-                     ( lpar + arg_func.suppress() + rpar ) ).setParseAction(self._pushUMinus) 
+            atom = ((Optional("-") + ( pi | e | fnumber | ident + lpar + arg_func + rpar | or_vars ).setParseAction( self._pushFirst )) | \
+                     (Optional("-") + ( lpar + arg_func.suppress() + rpar )) ).setParseAction(self._pushUMinus) 
             
 #             expr + ZeroOrMore( "," + expr )
             # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left exponents, instead of left-to-righ
