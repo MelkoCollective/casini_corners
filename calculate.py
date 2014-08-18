@@ -11,7 +11,9 @@ from sympy.mpmath import mpf, extraprec, cos, sqrt, log, pi, linspace, isinf, is
 import sympy.mpmath
 # TODO: The maple implementation is ugly, here.  Should pass namespace to the 
 # maple object at initiation.
-from maple import maple_EllipticK, maple_EllipticE, maple_EllipticF
+from maple import MapleLink, maple_EllipticK, maple_EllipticE, maple_EllipticF
+import multiprocessing
+import Queue
 
 import re
 
@@ -67,9 +69,78 @@ class Calculate(object):
             return X,P,correlators
         else:
             return X,P
+
+    # A variant of the above function which will distribute the integrals
+    # across many processes to utilize multiple cores. 
+    def correlations_multicore(self, polygon, maple_dir, precision, correlators=None, verbose=False):
+        
+        sympy.mpmath.mp.dps = precision
+        
+        # Find all displacement vectors.
+        dist_vects = [abs(p1-p2) for p1 in polygon for p2 in polygon]
+        
+        # The correlators depend symmetrically on i,j. To optimize calculations,
+        # trim down to the effectively unique displacement vectors.
+        dist_vects_ordered = [sp.array([p[1],p[0]]) if p[0] > p[1] else p for p in dist_vects]
+        unique_ij = list(set(tuple(p) for p in dist_vects_ordered))
+        
+        # Allocate X and P.
+        n = len(polygon)
+        X = sp.zeros((n,n))
+        P = sp.zeros((n,n))
+        
+        # Resources for allowing parallelization across multiple cores. 
+        jobs = []
+        q = multiprocessing.Queue()
+
+        # Get all the unique correlators.
+        for [i,j] in unique_ij:
+            if correlators is not None and (i,j) in correlators.keys():
+                phi_corr, pi_corr = correlators[(i,j)]
+
+                correlators[(i,j)] = [phi_corr, pi_corr]
+            else:
+                def worker(q,i,j):
+                    phi_corr, pi_corr = self.correlators_ij(i,j,maple_dir,precision)
+                    
+                    if verbose == True:
+                        print "Calculated integrals for i,j = {0}:".format([i,j])
+                        print "phi: {0}".format(phi_corr)
+                        print "pi:  {0}".format(pi_corr)
+
+                    q.put([(i,j),phi_corr, pi_corr])
+                p = multiprocessing.Process(target=worker, args=(q,i,j,))
+                p.start()
+                jobs.append(p)
+
+        # Complete any unfinished jobs.
+        for j in jobs:
+            j.join()
+            
+        # Get all the correlators from the finished processes.
+        while True:
+            try:
+                (i,j),phi,pi = q.get(block = False)
+                correlators[(i,j)] = [phi,pi]
+            except Queue.Empty:
+                break
+            
+        # Fill out X,P.
+        for n1,p1 in enumerate(polygon):
+            for n2,p2 in enumerate(polygon):
+                [i,j] = abs(p1-p2)
+                if i > j:
+                    i,j = j,i
+                X[n1,n2],P[n1,n2] = correlators[(i,j)]
+            
+        if correlators is not None:
+            return X,P,correlators
+        else:
+            return X,P
         
 #     @staticmethod
-    def correlators_ij(self, i, j, maple_link, precision):
+#     def correlators_ij(self, i, j, maple_link, precision):
+    def correlators_ij(self, i, j, maple_dir, precision):
         '''
         Calculate the integral cos(ix)cos(jy)/sqrt(2(1-cos(x))+2(1-cos(y))) for x,y = -Pi..Pi.
         This is done by computing the inner integral symbolically, and the outer numerically.
@@ -82,6 +153,8 @@ class Calculate(object):
         '''
         # Set the mpmath precision.
         sympy.mpmath.mp.dps = precision
+        
+        maple_link = MapleLink(maple_dir,precision)
         
         # Quicker if the higher frequency occurs in numerically solved outer
         # integral.

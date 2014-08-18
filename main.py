@@ -57,7 +57,8 @@ def main():
     for count,L in enumerate(sizes):
         print "---------------Working on lattice size L={0}...".format(L)
         polygon = calc.square_lattice(L)
-        X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
+#         X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
+        X,P,saved_correlations = calc.correlations_multicore(polygon,maple_dir,precision,saved_correlations,True)
         entropies[count] = calc.entropy(X,P,n,precision, True, True)
         
         # Save the 'saved' correlations to file for later use.
