@@ -5,17 +5,15 @@ Created on May 31, 2013
 '''
 from __future__ import division
 
-from scipy import linalg, spatial
+from scipy import linalg
 import scipy as sp
-from sympy.mpmath import mpf, extraprec, cos, sqrt, log, pi, linspace, isinf, isnan
+from sympy.mpmath import mpf, extraprec, cos, log, pi, isinf, isnan
 import sympy.mpmath
-# TODO: The maple implementation is ugly, here.  Should pass namespace to the 
-# maple object at initiation.
-from maple import MapleLink, maple_EllipticK, maple_EllipticE, maple_EllipticF
+from maple import MapleLink
 import multiprocessing
 import Queue
 
-import re
+import bresenham
 
 class Calculate(object):
     '''
@@ -138,8 +136,6 @@ class Calculate(object):
         else:
             return X,P
         
-#     @staticmethod
-#     def correlators_ij(self, i, j, maple_link, precision):
     def correlators_ij(self, i, j, maple_dir, precision):
         '''
         Calculate the integral cos(ix)cos(jy)/sqrt(2(1-cos(x))+2(1-cos(y))) for x,y = -Pi..Pi.
@@ -161,47 +157,10 @@ class Calculate(object):
         if i>j:
             i,j = j,i
         
-        # Symbolically solve inner integral, using Maple:
-#         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-#         phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
-#         phi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(phi_str)
-#         pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-#         pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
-#         pi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(pi_str)
-#         inner_phi_str = maple_link.query(phi_integ_str)
-#         inner_pi_str = maple_link.query(pi_integ_str)
-#         
-#         
-#         def replacer(matchobj):
-#             newstr = "mpf('{0}')".format(matchobj.group(0))
-#             return newstr
-#         inner_phi_str_old = re.sub(r"[0-9]*\.?[0-9]+",replacer,inner_phi_str)
-#         inner_pi_str_old = re.sub(r"[0-9]*\.?[0-9]+",replacer,inner_pi_str)
-#         
-#         replace_dict = {'^':'**'}
-#         for maple_entry,py_entry in replace_dict.iteritems():
-#             inner_phi_str_old = inner_phi_str_old.replace(maple_entry,py_entry)
-#             inner_pi_str_old = inner_pi_str_old.replace(maple_entry,py_entry)
- 
-        # Create function using maple output. #TODO: switch out the eval for a parser when possible. eval is dangerous.
-#         def phi_inner_integral(y):
-#             out = eval(inner_phi_str)
-#             return out*cos(int(j)*y)
-#         def pi_inner_integral(y):
-#             out = eval(inner_pi_str)
-#             return out*cos(int(j)*y)
-        
-        # New code here:
         phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-#         phi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(phi_str)
         phi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(phi_str)
         pi_str = "cos({0}*x)*sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
-#         pi_integ_str = "int({0},x=0..Pi) assuming y >= 0;".format(pi_str)
         pi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(pi_str)
-
-#         inner_phi_str = maple_link.query(phi_integ_str)
-#         maple_link.parse(inner_phi_str)
-#         phi_stack = maple_link.get_parsed_stack()
 
         inner_pi_str = maple_link.query(pi_integ_str)
         maple_link.parse(inner_pi_str)
@@ -212,12 +171,12 @@ class Calculate(object):
         phi_stack = maple_link.get_parsed_stack()
         
         def phi_inner_integral(y):
-            vars = {'y':y}
-            out = maple_link.eval_stack(phi_stack, vars)
+            vardict = {'y':y}
+            out = maple_link.eval_stack(phi_stack, vardict)
             return out*cos(int(j)*y)
         def pi_inner_integral(y):
-            vars = {'y':y}
-            out = maple_link.eval_stack(pi_stack, vars)
+            vardict = {'y':y}
+            out = maple_link.eval_stack(pi_stack, vardict)
             return out*cos(int(j)*y)
          
         # Perform the outer integrals.  
@@ -251,18 +210,14 @@ class Calculate(object):
         :param precision: arithmetic precision 
         :param verbose: runtime output flag
         '''
-#         with extraprec(500):
-#             XP = X*P
         XP = sp.dot(X,P)
         
         # DEBUGGING: Saving the correlator matrices.
-        prec = sympy.mpmath.mp.dps
-        sp.savetxt("xmat.txt", X, fmt='%.{0}f'.format(prec),delimiter=",")
-        sp.savetxt("pmat.txt",P, fmt='%.{0}f'.format(prec),delimiter=",")
+#         prec = sympy.mpmath.mp.dps
+#         sp.savetxt("xmat.txt", X, fmt='%.{0}f'.format(prec),delimiter=",")
+#         sp.savetxt("pmat.txt",P, fmt='%.{0}f'.format(prec),delimiter=",")
                 
         # Scipy eigenvalues
-#         XPnum = sympy.matrix2numpy(XP)
-#         sqrt_eigs = sp.sqrt(linalg.eigvals(XPnum.astype(sp.float32)))
         sqrt_eigs = sp.sqrt(linalg.eigvals(XP))
         
         # Check that the eigenvalues are well-defined.
@@ -286,11 +241,8 @@ class Calculate(object):
         
         # Calculate entropy.
         S_n = 0
-#         eps = 1.e-12
-        eps = 0 # DEBUGGING
         if n == 1:
             for vk in sqrt_eigs:
-#                 S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5 + eps))
                 S_n += ((vk + 0.5)*log(vk + 0.5) - (vk - 0.5)*log(vk - 0.5))
         else:
             for vk in sqrt_eigs:
@@ -315,3 +267,12 @@ class Calculate(object):
         polygon = (sp.dstack(coord_arrays))
         polygon = sp.reshape(polygon,((L+1)**2,2))    
         return polygon
+    
+    @staticmethod
+    def circle_lattice(L):
+        coord_tuples = bresenham.raster_disk(0,0,L)
+        unique_tuples = set(coord_tuples)
+
+        coords = [sp.array(i) for i in unique_tuples]
+        return coords
+    

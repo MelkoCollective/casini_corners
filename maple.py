@@ -7,9 +7,7 @@ A module for querying Maple.
 '''
 
 import pexpect
-import sympy.mpmath
 from sympy.mpmath import ellipe, ellipf, ellipk, asin
-import re
 from math_parse import math_parser
 
 import types
@@ -72,7 +70,6 @@ class MapleLink:
     was created quickly for solving a very particular integral.  Review/revise
     before using elsewhere.
     '''
-    #TODO: code this class's structure differently. This dict stuff is ugly/hardcodey.
     
     child = None        
     last_query = None
@@ -151,13 +148,6 @@ class MapleLink:
         self.last_query = out
         return out
     
-#     # Parses the string and outputs a function which will evaluate it.
-#     def fooify(self):
-#         self.parser.parse(self.last_good_query)
-#         # Perform a deep copy.
-#         foo = copy_func(self.parser.value_of_stack,'foo')
-#         return foo
-    
     def parse(self,string):
         return self.parser.parse(string)
     
@@ -180,14 +170,5 @@ class MapleLink:
         py_str = maple_str
         for maple_entry,py_entry in self.replace_dict.iteritems():
             py_str = py_str.replace(maple_entry,py_entry)
-         
-        # Wrap all integers in the mpf function, to allow arbitrary precision of
-        # evaluation of the expression.
-        # Assumes that no floats appear.
-#         def replacer(matchobj):
-#             newstr = "mpf('{0}')".format(matchobj.group(0))
-#             return newstr
-#         py_str = re.sub(r"[0-9]*\.?[0-9]+",replacer,py_str)
-         
          
         return py_str

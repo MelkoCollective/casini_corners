@@ -14,38 +14,53 @@ Created on May 27, 2013
 
 import sys
 
-from scipy import optimize, zeros, linspace, log, array, arange
+from scipy import optimize, zeros, log, arange
 
 from calculate import Calculate
-from maple import MapleLink
 import pickle
 
 def main():
-    precision = int(sys.argv[1])
-    n = int(sys.argv[2])
-    maple_dir = sys.argv[3]
-    fit_to = int(sys.argv[4])
-    load_pickle = bool(int(sys.argv[5]))
-    save_pickle = bool(int(sys.argv[6]))
+    geometry_set = sys.argv[1] # choices = ['SQUARE','CIRCLE']
+    precision = int(sys.argv[2])    # precision = 15 or higher recommended
+    n = int(sys.argv[3])            # the Renyi entropy index
+    maple_dir = sys.argv[4]         # directory of maple executable
+    fit_to = int(sys.argv[5])       # bound on the geometry characteristic length
+    load_pickle = bool(int(sys.argv[6])) # loads old correlators (to avoid recomputing)
+    save_pickle = bool(int(sys.argv[7])) # saves new correlators
     
     # Create an instance of the class used for computation.
+    # TODO: This seems silly. Probably better practice to just use a global in
+    # the calculate module.
     calc = Calculate()
+
+    # The geometry is ultimately defined by a function which can generate the
+    # lattice points, and the function to which to fit.
+    # p0 is just a starting point for the curve_fit optimization routine
+    if geometry_set == 'SQUARE':
+        calc_pointcloud = calc.square_lattice
+        def func_to_fit(L,c0,c1,c2,c3,s_n):
+            # Note that the coefficient's names are not the same as Casini's notation.
+            return c0 + c1*(L) + c2*(1./(L)) + c3*(1./(L)**2) - 4*s_n*log(L)
+        p0 = [1,1,1,1,0.05]
+    elif geometry_set == 'CIRCLE':
+        calc_pointcloud = calc.circle_lattice
+        def func_to_fit(L,c0,s_n):
+            return c0 + s_n*L
+        p0 = [1,0.05]
     
     # Storage to avoid repeated computation of ij correlations. If desired,
-    # load in pickled correlators from a previous run.
+    # can load in pickled correlators from a previous run.
     saved_correlations = {}
     if load_pickle is True:
         pkl_file = open('corrs.pkl', 'rb')
         saved_correlations = pickle.load(pkl_file)
         pkl_file.close()
         
-    # Initiate MapleLink
-    maple_link = MapleLink(maple_dir,precision)
-    
     # Print presets
     print "START-------------------------------------"
     print "------------------------------------------"
     print "PARAMETERS:"
+    print 'geometry: {0}'.format(geometry_set)
     print "precision: {0}".format(precision)
     print "Renyi index: {0}".format(n)
     print "fit_to: {0}".format(fit_to)
@@ -53,10 +68,15 @@ def main():
 
     # Get the entropy for many different sizes of square lattice.
     sizes = arange(1,fit_to)
+    # TODO: Eventually do away with this 'if' clause by allowing offsite circles
+    if geometry_set is 'CIRCLE':
+        # This only selects odd radii.
+        sizes = arange(1,fit_to,2)
+
     entropies = zeros(sizes.shape)
     for count,L in enumerate(sizes):
         print "---------------Working on lattice size L={0}...".format(L)
-        polygon = calc.square_lattice(L)
+        polygon = calc_pointcloud(L)
 #         X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
         X,P,saved_correlations = calc.correlations_multicore(polygon,maple_dir,precision,saved_correlations,True)
         entropies[count] = calc.entropy(X,P,n,precision, True, True)
@@ -67,22 +87,13 @@ def main():
             pickle.dump(saved_correlations,output,-1)
             output.close()
         
-    #TODO: BELOW NOT YET TESTED IN ANY WAY.
     # Fitting.
     print "Performing fit..."
-    
-    def func_to_fit(L,c0,c1,c2,c3,s_n):
-        # Note that the coefficient's names are not the same as Casini's notation.
-        return c0 + c1*(L) + c2*(1./(L)) + c3*(1./(L)**2) - s_n*log(L)
-    
-    p0 = [1,1,1,1,0.05]
     popt, pcov = optimize.curve_fit(func_to_fit,sizes,entropies,p0)
 
-    s_n = popt[4]
-    print "Corner coefficient is: " 
+    s_n = popt[-1]
+    print "Coefficient for {0} is: ".format(geometry_set) 
     print s_n
-    print "covariances are: "
-    print pcov
 
 
 if __name__ == '__main__':    
