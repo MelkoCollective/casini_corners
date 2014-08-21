@@ -16,7 +16,7 @@ import sys
 
 from scipy import optimize, zeros, log, arange
 
-from calculate import Calculate
+import calculate as calc
 import pickle
 
 def main():
@@ -28,11 +28,6 @@ def main():
     load_pickle = bool(int(sys.argv[6])) # loads old correlators (to avoid recomputing)
     save_pickle = bool(int(sys.argv[7])) # saves new correlators
     
-    # Create an instance of the class used for computation.
-    # TODO: This seems silly. Probably better practice to just use a global in
-    # the calculate module.
-    calc = Calculate()
-
     # The geometry is ultimately defined by a function which can generate the
     # lattice points, and the function to which to fit.
     # p0 is just a starting point for the curve_fit optimization routine
@@ -69,7 +64,7 @@ def main():
     # Get the entropy for many different sizes of square lattice.
     sizes = arange(1,fit_to)
     # TODO: Eventually do away with this 'if' clause by allowing offsite circles
-    if geometry_set is 'CIRCLE':
+    if geometry_set == 'CIRCLE':
         # This only selects odd radii.
         sizes = arange(1,fit_to,2)
 
@@ -77,7 +72,7 @@ def main():
     for count,L in enumerate(sizes):
         print "---------------Working on lattice size L={0}...".format(L)
         polygon = calc_pointcloud(L)
-#         X,P,saved_correlations = calc.correlations(polygon,maple_link,precision,saved_correlations,True)
+#         X,P,saved_correlations = calc.correlations(polygon,maple_dir,precision,saved_correlations,True)
         X,P,saved_correlations = calc.correlations_multicore(polygon,maple_dir,precision,saved_correlations,True)
         entropies[count] = calc.entropy(X,P,n,precision, True, True)
         
