@@ -11,12 +11,10 @@ from sympy.mpmath import mpf, extraprec, cos, log, pi, isinf, isnan
 import sympy.mpmath
 from maple import MapleLink
 import multiprocessing
-import Queue
 
 import bresenham
 
-GUARD_START = 100 # Remembers the guard bits required to make the
-                       # calculation work.
+GUARD_START = 100 # Remembers the guard bits required to make integrals converge
     
 def correlations(polygon, maple_dir, precision, correlators=None, verbose=False):
     '''

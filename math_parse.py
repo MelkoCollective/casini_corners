@@ -26,11 +26,10 @@ BUGS:
 #
 # Copyright 2003-2006 by Paul McGuire
 #
-from pyparsing import Literal,CaselessLiteral,Word,Combine,Group,Optional,\
-    ZeroOrMore,Forward,nums,alphas,delimitedList,MatchFirst
+from pyparsing import Literal,CaselessLiteral,Word,Combine,Optional,\
+    ZeroOrMore,Forward,nums,alphas,MatchFirst
 import math
 import operator
-from functools import partial
 from itertools import chain
 from copy import deepcopy
 import sympy.mpmath as mpm
