@@ -15,16 +15,21 @@ import Queue
 
 import bresenham
 
-# class Calculate(object):
-#     '''
-#     Class containing calculations used in Casini's paper.
-#     '''
-    
 GUARD_START = 100 # Remembers the guard bits required to make the
                        # calculation work.
     
-#     @staticmethod
 def correlations(polygon, maple_dir, precision, correlators=None, verbose=False):
+    '''
+    Given a point cloud defined by polygon, this function will find the X and P
+    matrices of the phi and pi field correlations of free bosons on a square
+    2D lattice.
+    
+    :param polygon: a list of points on the lattice ex: [[1,2],[5,8],[3,4]]
+    :param maple_dir: directory to the commandline maple
+    :param precision: precision with which to perform the integration
+    :param correlators: precomputed correlators to avoid recomputation
+    :param verbose: the user can turn standard output on and off.
+    '''
     
     sympy.mpmath.mp.dps = precision
     
@@ -82,9 +87,12 @@ def worker(data):
         print "pi:  {0}".format(pi_corr)
 
     return [i,j,phi_corr,pi_corr]
-# A variant of the above correlations function which will distribute the integrals
-# across many processes to utilize multiple cores. 
+
 def correlations_multicore(polygon, maple_dir, precision, correlators=None, verbose=False):
+    '''
+    A variant of the above correlations function which will distribute the 
+    integrals across many subprocesses to utilize multiple cores.
+    '''
     
     sympy.mpmath.mp.dps = precision
     
@@ -142,8 +150,8 @@ def correlators_ij(i, j, maple_dir, precision):
     
     :param i: lattice index i
     :param j: lattice index j
-    :param maple_link: the MapleLink class to communicate with Maple
-    :param precision: the arithmetic precision
+    :param maple_dir: the directory to the commandline maple.
+    :param precision: the arithmetic precision (for numerical integration)
     '''
     # Set the mpmath precision.
     sympy.mpmath.mp.dps = precision
@@ -156,6 +164,8 @@ def correlators_ij(i, j, maple_dir, precision):
     # integral.
     if i>j:
         i,j = j,i
+        
+    # Perform the inner integrals.
     
     phi_str = "cos({0}*x)/sqrt(2*(1-cos(x))+2*(1-cos(y)))".format(int(i))
     phi_integ_str = "simplify(int({0},x=0..Pi) assuming y >= 0);".format(phi_str)
@@ -179,28 +189,33 @@ def correlators_ij(i, j, maple_dir, precision):
         out = maple_link.eval_stack(pi_stack, vardict)
         return out*cos(int(j)*y)
      
-    # Perform the outer integrals.  
-    # TODO: This blip of code is messy. There must be a more concise way 
-    #       to achieve the implemented efficiency + readability here.
+    # Perform the outer integrals.
+    
     def int_fail(integ):
         return (isnan(integ) or isinf(integ))
+    # This loop will increase the bits of precision in the integral calculations
+    # if they don't converge (low enough precision results in INF as a result).
+    # The global is used to remember the precision that works.
     for guard_bits in xrange(GUARD_START,1000,100):
+        
         phi_integ = sympy.mpmath.quad(extraprec(guard_bits)(phi_inner_integral),[0,pi])
         if int_fail(phi_integ):
             continue
+        
         pi_integ = sympy.mpmath.quad(extraprec(guard_bits)(pi_inner_integral),[0,pi])
         if int_fail(pi_integ):
             continue
+        
         GUARD_START = guard_bits
         break
     else:
-        raise ValueError("Hit guard bit tolerance of 1000!") #TODO: make this an input
+        raise ValueError("Hit guard bit tolerance of 1000!") #TODO: make this an input if needed
+    # Prefactors
     phi_integ *= mpf('1')/(2*pi**2)
     pi_integ *= mpf('1')/(2*pi**2)
     
     return phi_integ,pi_integ
 
-# @staticmethod
 def entropy(X, P, n, precision, truncate, verbose=False):
     '''
     Using the correlator matrices, find the nth entropy.
@@ -227,16 +242,14 @@ def entropy(X, P, n, precision, truncate, verbose=False):
             if truncate:
                 # Remove the eigenvalue
                 to_remove.append(i)
-                pass
             else:
                 raise ValueError("At least one of the eigenvalues of sqrt(XP) is below 0.5! \n eig = {0}".format(eig))
         if eig.imag != 0:
-#                 raise ValueError("Warning: getting imaginary components in eigenvalues! \n imag = {0}".format(eig.imag))
             print "Warning: got an imaginary eigvalue component: " + str(eig.imag)
         
     sqrt_eigs = sp.delete(sqrt_eigs,to_remove)
    
-    # Convert to float. Chop off imaginary component.
+    # Chop off imaginary component.
     sqrt_eigs = sqrt_eigs.real
     
     # Calculate entropy.
@@ -255,7 +268,6 @@ def entropy(X, P, n, precision, truncate, verbose=False):
     S_n = float(S_n)
     return S_n
 
-# @staticmethod
 def square_lattice(L):
     '''
     Generates an array of points making up a square LxL lattice.
@@ -268,8 +280,13 @@ def square_lattice(L):
     polygon = sp.reshape(polygon,((L+1)**2,2))    
     return polygon
 
-# @staticmethod
 def circle_lattice(L):
+    '''
+    Generates an array of points making up a rasterized disc with integer
+    radius L.
+    
+    :param L: the radius of the disk
+    '''
     coord_tuples = bresenham.raster_disk(0,0,L)
     unique_tuples = set(coord_tuples)
 
