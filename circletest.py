@@ -6,20 +6,7 @@ import numpy as np
 
 import bresenham
 
-def square_lattice(L):
-    '''
-    Generates an array of points making up a square LxL lattice.
-    
-    :param L: the dimension of the square lattice.
-    '''
-    x = sp.linspace(0,L,L+1)
-    coord_arrays = sp.meshgrid(x,x)
-    polygon = (sp.dstack(coord_arrays))
-    polygon = sp.reshape(polygon,((L+1)**2,2))    
-    return polygon
-
-
-def circle_lattice(L):
+def circle_lattice(L): #borrowed from calculate.py
     '''
     Generates an array of points making up a rasterized disc with integer
     radius L.
@@ -35,8 +22,8 @@ def circle_lattice(L):
 
 def main():
 
-   R = 2  #this is the radius of the circle
-   L = 8  # this specifies an LxL lattice
+   R = 8  #this is the radius of the circle
+   L = 20  # this specifies an LxL lattice
 
    c = circle_lattice( R )
    print c[0]
