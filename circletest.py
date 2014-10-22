@@ -36,9 +36,13 @@ def main():
    for i in c:
 	   lattice[ i[0]+R+Lx,i[1]+R+Ly ] = 1  #This assigns '1' to the region A, offset by R
 
-   print lattice #optional
+   sub = lattice[12:16,1:6]
 
-   np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
+   print lattice 
+   print sub 
+
+   #np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
+   np.savetxt('test.out', sub, delimiter=' ', fmt='%i') #save to plain text
 
 
 if __name__ == '__main__':    
