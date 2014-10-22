@@ -18,12 +18,15 @@ def circle_lattice(L): #borrowed from calculate.py
 
     coords = [sp.array(i) for i in unique_tuples]
     return coords
-    
+
 
 def main():
 
-   R = 8  #this is the radius of the circle
-   L = 20  # this specifies an LxL lattice
+   Lx=5;   #the linear dimensions of a cluster
+   Ly=5;
+   R = 10  #this is the radius of the circle
+
+   L = 2*R+2*Lx+1  # this specifies an LxL lattice to embed the circle in
 
    c = circle_lattice( R )
    print c[0]
@@ -31,7 +34,7 @@ def main():
    lattice = sp.zeros( (L,L), dtype = 'int8' )
 
    for i in c:
-	   lattice[ i[0]+R,i[1]+R  ] = 1  #This assigns '1' to the region A, offset by R
+	   lattice[ i[0]+R+Lx,i[1]+R+Ly ] = 1  #This assigns '1' to the region A, offset by R
 
    print lattice #optional
 
