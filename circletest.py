@@ -20,6 +20,20 @@ def circle_lattice(L): #borrowed from calculate.py
     return coords
 
 
+def cluster_cuts(Lx,Ly,L,latt):
+ 
+   edge_counter = 0  #counts how many clusters have a unique edge
+   for y in range (0,L-Ly):
+      for x in range (0,L-Lx):
+         sub = latt[y:y+Ly,x:x+Lx]
+         #print sub #print lattice 
+         if np.sum(sub) != 0 and np.sum(sub) != (Lx*Ly):
+            edge_counter += 1
+            filename=str(y)+"_"+str(x)+".dat"
+            np.savetxt(filename, sub, delimiter=' ', fmt='%i') #save to plain text
+
+   print edge_counter
+
 def main():
 
    Lx=5;   #the linear dimensions of a cluster
@@ -31,18 +45,18 @@ def main():
    c = circle_lattice( R )
    print c[0]
 
-   lattice = sp.zeros( (L,L), dtype = 'int8' )
+   lattice = sp.zeros( (L,L), dtype = 'int' )
 
+   #count = 0
+   #print count
    for i in c:
-	   lattice[ i[0]+R+Lx,i[1]+R+Ly ] = 1  #This assigns '1' to the region A, offset by R
+       lattice[ i[0]+R+Lx,i[1]+R+Ly ] = 1 # + count  #This assigns '1' to the region A, offset by R
+       #count += 1
+       #print count
 
-   sub = lattice[12:16,1:6]
+   cluster_cuts(Lx,Ly,L,lattice)
 
-   print lattice 
-   print sub 
-
-   #np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
-   np.savetxt('test.out', sub, delimiter=' ', fmt='%i') #save to plain text
+   np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
 
 
 if __name__ == '__main__':    
