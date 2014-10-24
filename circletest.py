@@ -20,14 +20,14 @@ def circle_lattice(L): #borrowed from calculate.py
     return coords
 
 
-def cluster_cuts(Lx,Ly,L,latt):
+def cluster_cuts(Cx,Cy,Lx,Ly,latt):
  
    edge_counter = 0  #counts how many clusters have a unique edge
-   for y in range (0,L-Ly):
-      for x in range (0,L-Lx):
-         sub = latt[y:y+Ly,x:x+Lx]
+   for y in range (0,Ly-Cy):
+      for x in range (0,Lx-Cx):
+         sub = latt[y:y+Cy,x:x+Cx]
          #print sub #print lattice 
-         if np.sum(sub) != 0 and np.sum(sub) != (Lx*Ly):
+         if np.sum(sub) != 0 and np.sum(sub) != (Cx*Cy):
             edge_counter += 1
             filename=str(y)+"_"+str(x)+".dat"
             np.savetxt(filename, sub, delimiter=' ', fmt='%i') #save to plain text
@@ -36,25 +36,21 @@ def cluster_cuts(Lx,Ly,L,latt):
 
 def main():
 
-   Lx=5;   #the linear dimensions of a cluster
-   Ly=5;
-   R = 10  #this is the radius of the circle
+   Cx=2;   #the linear dimensions of a cluster
+   Cy=3;
+   R = 2  #this is the radius of the circle
 
-   L = 2*R+2*Lx+1  # this specifies an LxL lattice to embed the circle in
+   Lx = 2*R+2*Cx+1  # this specifies an Lx x Ly lattice to embed the circle in
+   Ly = 2*R+2*Cy+1  
 
    c = circle_lattice( R )
-   print c[0]
 
-   lattice = sp.zeros( (L,L), dtype = 'int' )
+   lattice = sp.zeros( (Ly,Lx), dtype = 'int' )
 
-   #count = 0
-   #print count
    for i in c:
-       lattice[ i[0]+R+Lx,i[1]+R+Ly ] = 1 # + count  #This assigns '1' to the region A, offset by R
-       #count += 1
-       #print count
+       lattice[ i[0]+R+Cy,i[1]+R+Cx ] = 1 # + count  #This assigns '1' to the region A, offset by R
 
-   cluster_cuts(Lx,Ly,L,lattice)
+   cluster_cuts(Cx,Cy,Lx,Ly,lattice)  #generate all cuts
 
    np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
 
