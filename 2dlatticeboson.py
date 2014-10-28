@@ -54,11 +54,13 @@ for i in range(2,13):
     NsA=len(sitesA)
     Pred = np.zeros((NsA, NsA))
     Xred = np.zeros((NsA, NsA))
-        
+    # ............ Following step differs from Mathematica ...........        
     for a in range(0, NsA):
         for b in range(0, NsA):
             Pred[a,b] = P[sitesA[a] , sitesA[b]]
             Xred[a,b] = X[sitesA[a] , sitesA[b]]
+    #....end of the step .......
+     
     Csquared = (Xred.T).dot(Pred)
     Ev = np.sqrt(np.linalg.eigvals(Csquared))
         
