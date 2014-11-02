@@ -3,22 +3,17 @@ import numpy as np
 import zlib
 import binascii
 import pickle
+import dbm
 
 def compress(fluster):
 #takes a numpy array that is the cluster
 #returns a hexadecimal key that is the compression of the *string* representing the cluster
 
-    #cluster = np.array_str(fluster)  #convert to a string
-    cluster = pickle.dumps(fluster) #http://stackoverflow.com/questions/19644850/unpickling-from-converted-string-in-python-numpy
-    #cluster = repr(c_intermed)
-
-    #print cluster
+    cluster = pickle.dumps(fluster) 
+    #print len(cluster), binascii.hexlify(cluster)  #this is a very long key
 
     compressed = zlib.compress(cluster)
-    print 'Compressed   :', len(compressed), binascii.hexlify(compressed)
-
-    #e_file= str(binascii.hexlify(compressed)) + ".ent"  #this is the file name for the entropy values
-    #print e_file
+    #print 'Compressed   :', len(compressed), binascii.hexlify(compressed)
 
     return binascii.hexlify(compressed)  #convert to a hex number from binary
 
@@ -32,8 +27,6 @@ def decompress(cname):
     decompressed = zlib.decompress(compressed)
     #print 'Decompressed :', len(decompressed), decompressed
 
-    #decomp_array = np.array(decompressed)  #convert back from a string to a numpy array
-    #decomp_pickle = eval(decompressed)
     decomp_array = pickle.loads(decompressed)
 
     return decomp_array
@@ -41,36 +34,30 @@ def decompress(cname):
 
 def main():
 
+    #create the entangling cluster
     filename = 'temp.dat'  #this file was created by circletest.py
     fluster = np.loadtxt(filename, dtype=int)  #read file - could try dtype=bool
     print fluster
     print fluster.shape
 
+    #compress the binary cluster data into a "name" or key
     cname = compress(fluster)
-    print cname
+    print len(cname), cname
 
+    #attempt to recover the cluster from the compressed key; check properties
     clust = decompress(cname)
     print clust.size
     print clust.shape
     print clust
-    #fh = open('temp2.dat', "w")
-    #fh.write(clust)
-    #fh.close()
+    #save to file - can compare to temp2.dat
+    np.savetxt("temp2.dat", clust, delimiter=' ', fmt='%i') #save to plain text
 
+    #This is how the database will work
+    database = dbm.open('m_n.clust','c')
+    database[cname] = str(0.693) #storing the entropy value under key cname
+    database.keys()         #get the file keys
+    print database[cname]
 
-    np.savetxt("temp3.dat", clust, delimiter=' ', fmt='%i') #save to plain text
-
-#    #the file should not exist here: test the exception handling
-#    try:
-#       fh = open(e_file, "r")
-#    except IOError:
-#       print "Error: FILE DOES NOT EXIST YET"
-#    
-#    
-#    #here we create the file
-#    fh = open(e_file, "w")
-#    fh.write("your entropy value goes here")
-#    fh.close()
 
 if __name__ == '__main__':    
     main()
