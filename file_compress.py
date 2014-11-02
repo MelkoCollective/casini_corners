@@ -2,12 +2,16 @@
 import numpy as np
 import zlib
 import binascii
+import pickle
 
 def compress(fluster):
 #takes a numpy array that is the cluster
 #returns a hexadecimal key that is the compression of the *string* representing the cluster
 
-    cluster = np.array_str(fluster)  #convert to a string
+    #cluster = np.array_str(fluster)  #convert to a string
+    cluster = pickle.dumps(fluster) #http://stackoverflow.com/questions/19644850/unpickling-from-converted-string-in-python-numpy
+    #cluster = repr(c_intermed)
+
     #print cluster
 
     compressed = zlib.compress(cluster)
@@ -29,9 +33,10 @@ def decompress(cname):
     #print 'Decompressed :', len(decompressed), decompressed
 
     #decomp_array = np.array(decompressed)  #convert back from a string to a numpy array
+    #decomp_pickle = eval(decompressed)
+    decomp_array = pickle.loads(decompressed)
 
-    return decompressed
-    #return decomp_array
+    return decomp_array
 
 
 def main():
@@ -45,10 +50,15 @@ def main():
     print cname
 
     clust = decompress(cname)
-    #print clust.shape
+    print clust.size
+    print clust.shape
     print clust
+    #fh = open('temp2.dat', "w")
+    #fh.write(clust)
+    #fh.close()
 
-    #np.savetxt("temp3.dat", clust, delimiter=' ', fmt='%i') #save to plain text
+
+    np.savetxt("temp3.dat", clust, delimiter=' ', fmt='%i') #save to plain text
 
 #    #the file should not exist here: test the exception handling
 #    try:
