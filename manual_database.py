@@ -1,10 +1,12 @@
 
-
+#generates and empty database for m_n clusters
 #from scipy import optimize, zeros, log, arange
 import scipy as sp
 import numpy as np
+import dbm
 
 import bresenham
+import key_gen as fc
 
 def circle_lattice(L): #borrowed from calculate.py
     '''
@@ -21,7 +23,10 @@ def circle_lattice(L): #borrowed from calculate.py
 
 
 def cluster_cuts(Cx,Cy,Lx,Ly,latt):
- 
+
+   filename=str(Cx)+"_"+str(Cy)
+   database = dbm.open(filename,'c')
+
    edge_counter = 0  #counts how many clusters have a unique edge
    for y in range (0,Ly-Cy):
       for x in range (0,Lx-Cx):
@@ -30,8 +35,13 @@ def cluster_cuts(Cx,Cy,Lx,Ly,latt):
          if np.sum(sub) != 0 and np.sum(sub) != (Cx*Cy):
             edge_counter += 1
             filename=str(y)+"_"+str(x)+".dat"
-            np.savetxt(filename, sub, delimiter=' ', fmt='%i') #save to plain text
+            #np.savetxt(filename, sub, delimiter=' ', fmt='%i') #save to plain text
+            cname = fc.compress(sub)
+            #print cname
+            #look in the database file Cx_Cy.db
+            database[cname] = str(-99) #storing the entropy value under key cname
 
+   database.close()
    print edge_counter
 
 def main():
@@ -54,6 +64,14 @@ def main():
 
    np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
 
+   filename=str(Cx)+"_"+str(Cy)
+   db = dbm.open(filename,'c')
+
+   print db.keys()
+   for key in db.keys():
+      print(db[key])
+
+   db.close()
 
 if __name__ == '__main__':    
     main()
