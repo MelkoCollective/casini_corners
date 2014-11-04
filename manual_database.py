@@ -21,6 +21,13 @@ def circle_lattice(L): #borrowed from calculate.py
     coords = [sp.array(i) for i in unique_tuples]
     return coords
 
+def square_lattice(L): # generates lattice coordinates inside a square
+    coords = []
+    for i in range (-L/2 , L/2):
+       for j in range (-L/2 , L/2):
+           coords.append([i,j])
+    return coords
+
 
 def cluster_cuts(Cx,Cy,Lx,Ly,latt):
 
@@ -44,22 +51,23 @@ def cluster_cuts(Cx,Cy,Lx,Ly,latt):
    database.close()
    print edge_counter
 
+
 def main():
 
-   Cx=2;   #the linear dimensions of a cluster
-   Cy=2;
+   Cx=7;   #the linear dimensions of a cluster
+   Cy=1;
    R = 4  #this is the radius of the circle
 
    Lx = 2*R+2*Cx+1  # this specifies an Lx x Ly lattice to embed the circle in
    Ly = 2*R+2*Cy+1  
 
-   c = circle_lattice( R )
+   c = square_lattice( R )
 
    lattice = sp.zeros( (Ly,Lx), dtype = 'int' )
 
    for i in c:
        lattice[ i[0]+R+Cy,i[1]+R+Cx ] = 1 # + count  #This assigns '1' to the region A, offset by R
-
+   print lattice
    cluster_cuts(Cx,Cy,Lx,Ly,lattice)  #generate all cuts
 
    np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
