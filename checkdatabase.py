@@ -1,13 +1,21 @@
 import dbm
 import math
+import key_gen as kg
 
-for s in range(3, 9):
+'''filename=str(8)+"_"+str(2)
+try:
+    db = dbm.open(filename)
+except dbm.error:
+    print "Can't open %s" % (filename)
+
+'''
+
+for s in range(3, 6):
     for Lx in range(int(math.ceil(s/2.)), s):
         Ly = s-Lx
-        filename=str(Lx)+"_"+str(Ly)
+        filename="Database/"+"%02d_%02d"%(Lx,Ly)
         print filename
-        db = dbm.open(filename,'c')
+        db = dbm.open(filename)
         for key in db.keys():
-            print db[key]
-        db.close()
-         
+            print kg.decompress(key), db[key]
+        db.close()      

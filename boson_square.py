@@ -9,7 +9,7 @@ start_time = time.time()
 
 perx = pery = False # PBC or not along the x and y direction 
 massterm = 0
-for s in range(3, 9):
+for s in range(3, 41):
     for Lx in range(int(math.ceil(s/2.)), s):
         Ly = s-Lx
         Ns = Lx * Ly
@@ -33,8 +33,8 @@ for s in range(3, 9):
         P = 1./2. * np.matrix(Evec) * np.matrix(np.diag(np.sqrt(Eval))) * np.matrix(Evec.T)
         X = 1./2. * np.matrix(Evec) * np.matrix(np.diag(1. / np.sqrt(Eval))) * np.matrix(Evec.T)
    
-        filename=str(Lx)+"_"+str(Ly)
-        db = dbm.open(filename,'c')
+        filename="Database/"+"%02d_%02d"%(Lx,Ly)
+        db = dbm.open(filename,'w')
         for key in db.keys():
             if db[key] == str(-99):
                 clust = np.array(kg.decompress(key))
@@ -60,7 +60,7 @@ for s in range(3, 9):
                 for j in range(0, NsA):
                     if Ev[j] > 0.5:
                         Sn += (Ev[j]+1./2) * np.log(abs(Ev[j]+1./2.))-(Ev[j]-1./2.)*np.log(abs(Ev[j]-1./2)) 
-                db[key] = str(Sn)
+                db[key] = str("%.15f"%Sn)
         db.close()
         print filename , "done"
  
