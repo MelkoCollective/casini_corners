@@ -17,7 +17,7 @@ print "Writing file ",filename
 f = open(filename, 'a')
 #############################
 #for r in range(1,5):
-r = 1 #radius 4
+r = 0 #radius 4
 total = None
 w = {} # weights
 missing = [] # The list of missing data files
@@ -26,7 +26,7 @@ clusters = []
 
 for I in frange(order_min,order_max+0.01,order_step):
     for m,n in order.clusters(I):
-        filename= "Database/"+"%02d_%02d"%(m,n)
+        filename= "Database/"+"%02d_%02d"%(m,n)+"point"
         try:
             db = dbm.open(filename)
             db.close()
@@ -39,7 +39,7 @@ for I in frange(order_min,order_max+0.01,order_step):
 
             #Embedding factor (1 for squares, 2 for rectangles):
             Lc = 1
-            #if m != n: Lc = 2   #see line 24, mxn_weight.py
+            if m != n: Lc = 2   #see line 24, mxn_weight.py
 
             # cannot use total += w['%02d%02d'%(m,n)] or else W0202 somehow gets changed every iteration
             if total is None:

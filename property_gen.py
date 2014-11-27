@@ -30,7 +30,7 @@ def square_lattice(L): # generates lattice coordinates inside a square
 
 def property(Cx,Cy,Lx,Ly,latt):
 
-   filename="Database/"+"%02d_%02d"%(Cx,Cy)
+   filename="Database/"+"%02d_%02d"%(Cx,Cy)+"point"
    database = dbm.open(filename)
 
    edge_counter = 0  #counts how many clusters have a unique edge
