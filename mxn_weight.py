@@ -7,12 +7,7 @@ def weight(m,n,r,w):
     Lx = 2*R+2*m+1  # this specifies an Lx x Ly lattice to embed the circle in
     Ly = 2*R+2*n+1
 
-<<<<<<< HEAD
     c = pg.square_lattice(R) 
-=======
-    #c = pg.square_lattice( R )
-    c = [[0,0]]
->>>>>>> 904cecc1198e5f9ee49f0a83ded4e48f7f658616
 
     lattice = sp.zeros( (Ly,Lx), dtype = 'int' )
 
@@ -25,11 +20,7 @@ def weight(m,n,r,w):
 
     # First term in weight of mxn is property of mxn
     w[w_mxn_name] = pg.property(m,n,Lx,Ly,lattice)
-<<<<<<< HEAD
     #if (m != n):w[w_mxn_name] *= 2
-=======
-    #if (m != n): w[w_mxn_name] *= 2
->>>>>>> 904cecc1198e5f9ee49f0a83ded4e48f7f658616
     print w[w_mxn_name],
 
     wformula = "W%02d%02d=P%02d%02d"%(m,n,m,n)
