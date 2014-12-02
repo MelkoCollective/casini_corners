@@ -9,7 +9,7 @@ start_time = time.time()
 
 perx = pery = False # PBC or not along the x and y direction 
 massterm = 0
-for s in range(3, 41):
+for s in range(21, 40):
     for Lx in range(int(math.ceil(s/2.)), s):
         Ly = s-Lx
         Ns = Lx * Ly

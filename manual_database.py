@@ -23,16 +23,15 @@ def circle_lattice(L): #borrowed from calculate.py
 
 def square_lattice(L): # generates lattice coordinates inside a square
     coords = []
-    for i in range (-L/2 , L/2):
-       for j in range (-L/2 , L/2):
+    for i in range (-L , L):
+       for j in range (-L , L):
            coords.append([i,j])
     return coords
 
-
 def cluster_cuts(Cx,Cy,Lx,Ly,latt):
 
-   filename="Database/"+"%02d_%02d"%(Cx,Cy)
-   database = dbm.open(filename,'w')
+   filename="Database_circle/"+"%02d_%02d"%(Cx,Cy)
+   database = dbm.open(filename,'c')
 
    edge_counter = 0  #counts how many clusters have a unique edge
    for y in range (0,Ly-Cy):
@@ -54,27 +53,27 @@ def cluster_cuts(Cx,Cy,Lx,Ly,latt):
 
 
 def main():
-   for s in range(3,41):
+   for s in range(3,40):
        for Cx in range(int(math.ceil(s/2.)), s):
            Cy=s-Cx
-           R = 16  #this is the radius of the circle
-
+           R = 2 #R this is the radius of the circle
+        
            Lx = 2*R+2*Cx+1  # this specifies an Lx x Ly lattice to embed the circle in
            Ly = 2*R+2*Cy+1  
 
-           c = square_lattice( R )
-
+           c = circle_lattice(R)
+           
            lattice = sp.zeros( (Ly,Lx), dtype = 'int' )
 
            for i in c:
                lattice[ i[0]+R+Cy,i[1]+R+Cx ] = 1 # + count  #This assigns '1' to the region A, offset by R
-           print lattice
+           print lattice, "lattice"
            cluster_cuts(Cx,Cy,Lx,Ly,lattice)  #generate all cuts
 
-           np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
+           #np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
 
            '''filename="%02d_%02d"%(Lx,Ly)
-           idatabase = dbm.open(os.path.join(Database,filename),'c')
+           database = dbm.open(os.path.join(Database,filename),'c')
            print db.keys()
            for key in db.keys():
                print(db[key])
