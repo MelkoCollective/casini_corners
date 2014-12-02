@@ -31,7 +31,7 @@ def square_lattice(L): # generates lattice coordinates inside a square
 def property(Cx,Cy,Lx,Ly,latt):
 
    filename="Database/"+"%02d_%02d"%(Cx,Cy)
-   database = dbm.open(filename)
+   database = dbm.open(filename,'c')
 
    edge_counter = 0  #counts how many clusters have a unique edge
    pmn = 0   #calculates property for mxn cluster
@@ -44,7 +44,11 @@ def property(Cx,Cy,Lx,Ly,latt):
             #fname=str(y)+"_"+str(x)+".dat"
             #np.savetxt(fname, sub, delimiter=' ', fmt='%i') #save to plain text
             cname = fc.compress(sub)
-            pmn += float(database[cname]) #generating property from Database#
+            flag = database.has_key(cname) #check database
+            if not flag: 
+                database[cname] = str(-99) #storing the entropy value under key cname
+                print 'WARNING: DATABASE INCOMPLETE'
+            else: pmn += float(database[cname]) #generating property from Database#
    database.close()
    #print edge_counter
    #print pmn
