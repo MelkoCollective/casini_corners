@@ -10,7 +10,7 @@ except dbm.error:
 
 '''
 
-for s in range(3, 8):
+for s in range(8, 10):
     for Lx in range(int(math.ceil(s/2.)), s):
         Ly = s-Lx
         filename="Database/"+"%02d_%02d"%(Lx,Ly)

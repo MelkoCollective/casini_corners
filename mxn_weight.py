@@ -1,8 +1,8 @@
 import numpy
 import scipy as sp
 import property_gen as pg
-def weight(m,n,r,w):
-    R = 4*r  #this is the radius of the circle
+def weight(m,n,R,w):
+    #R is the radius of the circle
 
     Lx = 2*R+2*m+1  # this specifies an Lx x Ly lattice to embed the circle in
     Ly = 2*R+2*n+1

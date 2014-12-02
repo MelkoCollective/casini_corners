@@ -13,9 +13,9 @@ order_max = 36
 order_step = 1
 order = Arithmetic()
 #############################
-for r in range(1,3):
+for r in range(2,3):
     #r = 1 #radius 4
-    R=4*r
+    R=3*r
     filename = "Results_%02d"%(R,)
     print "Writing file ",filename
     f = open(filename, 'a')
@@ -36,7 +36,7 @@ for r in range(1,3):
                 missing.append(filename)
 
             if len(missing) == 0:
-                w = mxn_weight.weight(m,n,r,w) # performs cluster weight calculations
+                w = mxn_weight.weight(m,n,R,w) # performs cluster weight calculations
 
             #Embedding factor (1 for squares, 2 for rectangles):
                 Lc = 1
