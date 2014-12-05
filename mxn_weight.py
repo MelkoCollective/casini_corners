@@ -21,7 +21,7 @@ def weight(m,n,R,w):
     # First term in weight of mxn is property of mxn
     w[w_mxn_name] = pg.property(m,n,Lx,Ly,lattice)
     #if (m != n):w[w_mxn_name] *= 2
-    print w[w_mxn_name],
+    #print w[w_mxn_name],
 
     wformula = "W%02d%02d=P%02d%02d"%(m,n,m,n)
 
@@ -37,8 +37,7 @@ def weight(m,n,R,w):
 
                 w[w_mxn_name] -= coeff * w['%02d%02d'%(x,y)]
                 
-    print w[w_mxn_name]
-
-    print wformula
+    #print w[w_mxn_name]
+    #print wformula
 
     return w

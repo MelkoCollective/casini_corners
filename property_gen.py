@@ -48,6 +48,7 @@ def property(Cx,Cy,Lx,Ly,latt):
             if not flag: 
                 database[cname] = str(-99) #storing the entropy value under key cname
                 print 'WARNING: DATABASE INCOMPLETE'
+            elif database[cname] == str(-99): print 'WARNING: -99 USED IN NLCE' 
             else: pmn += float(database[cname]) #generating property from Database#
    database.close()
    #print edge_counter

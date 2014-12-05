@@ -9,7 +9,7 @@ from mxn_order import *
 # User settings
 
 order_min = 2
-order_max = 16 
+order_max = 24 
 order_step = 1
 order = Arithmetic()
 #############################
