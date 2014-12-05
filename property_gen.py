@@ -22,8 +22,8 @@ def circle_lattice(L): #borrowed from calculate.py
 
 def square_lattice(L): # generates lattice coordinates inside a square
     coords = []
-    for i in range (-L/2 , L/2):
-       for j in range (-L/2 , L/2):
+    for i in range (-L , L):
+       for j in range (-L , L):
            coords.append([i,j])
     return coords
 
