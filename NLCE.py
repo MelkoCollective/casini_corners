@@ -29,6 +29,7 @@ clusters = []
 
 for I in frange(order_min,order_max+0.01,order_step):
     for m,n in order.clusters(I):
+        '''
         filename= "Database/"+"%02d_%02d"%(m,n)
         try:
             db = dbm.open(filename)
@@ -36,7 +37,7 @@ for I in frange(order_min,order_max+0.01,order_step):
         except dbm.error:
             print "Can't open %s" %(filename)
             missing.append(filename)
-
+        '''
         #if len(missing) == 0:
         w = mxn_weight.weight(m,n,R,w) # performs cluster weight calculations
 
