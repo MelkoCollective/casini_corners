@@ -3,11 +3,10 @@ from numpy import matrix,linalg,mean
 from math import log,sqrt
 import sys
 
-lmax = 35
+lmax = 4
 lmin = 3
-lstep = 1
 
-results_template = "Results_circle_%02d"
+results_template = "Results_%02d"
 
 def linfit(x_list,y_list): #includes linear fitting as a special case
     Y = matrix([[y_] for y_ in y_list])
@@ -28,16 +27,15 @@ for i in range (1,9):
     f = open(fname, 'r')
     invorder = []
     EE = []
-    for lines in f.readlines()[8:]:
+    for lines in f.readlines()[(lmin-3):(lmax-3)]:
         line = lines.split()
         invorder.append(1/float(line[0]))
         EE.append(float(line[1]))
     f.close()
-    print EE,invorder
     m,b,err = linfit(invorder,EE)
     entropy.append(b)
 
-f = open("entropy_circle",'w')
+f = open("entropy",'w')
 for i in range (1,9):
     R = 2*i
     f.write("%02d %.20f\n"%(R,entropy[i-1]))
