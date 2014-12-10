@@ -6,6 +6,8 @@ import dbm
 import math
 import bresenham
 import key_gen as fc
+import os
+import fnmatch
 
 def circle_lattice(L): #borrowed from calculate.py
     '''
@@ -29,10 +31,17 @@ def square_lattice(L): # generates lattice coordinates inside a square
 
 
 def property(Cx,Cy,Lx,Ly,latt):
-
-   filename="Database/"+"%02d_%02d"%(Cx,Cy)
-   database = dbm.open(filename,'c')
-
+   
+   pattern = "*"+"%02d_%02d"%(Cx,Cy)+".db"
+   files = os.listdir('./Database_circle')
+   filename = "X_%02d_%02d"%(Cx,Cy)
+   for name in files:
+       if fnmatch.fnmatch(name, pattern) == True:
+           filename = name.split(".")[0]
+   #print filename
+   database = dbm.open("Database_circle/"+filename,'c')
+   
+   fileflag = 0
    edge_counter = 0  #counts how many clusters have a unique edge
    pmn = 0   #calculates property for mxn cluster
    for y in range (0,Ly-Cy):
@@ -47,10 +56,14 @@ def property(Cx,Cy,Lx,Ly,latt):
             flag = database.has_key(cname) #check database
             if not flag: 
                 database[cname] = str(-99) #storing the entropy value under key cname
-                print 'WARNING: DATABASE INCOMPLETE'
+                fileflag += 1
+                #print 'WARNING: DATABASE INCOMPLETE'
             elif database[cname] == str(-99): print 'WARNING: -99 USED IN NLCE' 
             else: pmn += float(database[cname]) #generating property from Database#
    database.close()
+   
+   if fileflag > 0 and filename.split("_")[0] != "X": 
+       os.rename("Database_circle/"+filename+".db", "Database_circle/X_"+filename+".db")
    #print edge_counter
    #print pmn
    return pmn
