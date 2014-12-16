@@ -33,13 +33,13 @@ def square_lattice(L): # generates lattice coordinates inside a square
 def property(Cx,Cy,Lx,Ly,latt):
    
    pattern = "*"+"%02d_%02d"%(Cx,Cy)+".db"
-   files = os.listdir('./Database_circle')
+   files = os.listdir('./Database')
    filename = "X_%02d_%02d"%(Cx,Cy)
    for name in files:
        if fnmatch.fnmatch(name, pattern) == True:
            filename = name.split(".")[0]
    #print filename
-   database = dbm.open("Database_circle/"+filename,'c')
+   database = dbm.open("Database/"+filename,'c')
    
    fileflag = 0
    edge_counter = 0  #counts how many clusters have a unique edge
@@ -63,7 +63,7 @@ def property(Cx,Cy,Lx,Ly,latt):
    database.close()
    
    if fileflag > 0 and filename.split("_")[0] != "X": 
-       os.rename("Database_circle/"+filename+".db", "Database_circle/X_"+filename+".db")
+       os.rename("Database/"+filename+".db", "Database/X_"+filename+".db")
    #print edge_counter
    #print pmn
    return pmn

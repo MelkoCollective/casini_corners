@@ -10,7 +10,7 @@ import os
 
 perx = pery = False # PBC or not along the x and y direction 
 massterm = 0
-for file in glob.glob('Database_circle/*.db'):
+for file in glob.glob('Database/*.db'):
     if file.split("/")[1].split(".")[0].split("_")[0] == "X":
         Lx=int(file.split("/")[1].split(".")[0].split("_")[1])
         Ly=int(file.split("/")[1].split(".")[0].split("_")[2])
@@ -67,6 +67,6 @@ for file in glob.glob('Database_circle/*.db'):
         
         newfilename = filename.split("/")[0]+"/"+filename.split("/")[1][2:]
         os.rename(filename+".db", newfilename+".db")
-    print file , "done"
+        print file , "done"
     
- 
+print "Free boson calculation complete" 

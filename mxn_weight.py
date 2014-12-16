@@ -14,9 +14,7 @@ def weight(m,n,R,w):
     for i in c:
         lattice[ i[0]+R+n,i[1]+R+m ] = 1 # + count  #This assigns '1' to the region A, offset by R
     
-    
     w_mxn_name = '%02d%02d'%(m,n)
-
 
     # First term in weight of mxn is property of mxn
     w[w_mxn_name] = pg.property(m,n,Lx,Ly,lattice)

@@ -9,7 +9,7 @@ from mxn_order import *
 # User settings
 
 order_min = 2
-order_max = 24 
+order_max = 26 
 order_step = 1
 order = Arithmetic()
 #############################
@@ -61,3 +61,5 @@ if len(missing) > 0:
    for m in missing:
        print "  ",m
 f.close()
+
+print "Order done: ",str(order_max)
