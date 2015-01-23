@@ -1,4 +1,3 @@
-
 class Arithmetic:
 
 
@@ -9,7 +8,7 @@ class Arithmetic:
         return "%.1f"%self.length(N)
 
     def clusters(self,N):
-        x = N
+        x = N-1
         y = 1
         res = [(x,y),]
         while x > (y+1):
@@ -17,3 +16,19 @@ class Arithmetic:
             y += 1
             res.append((x,y))
         return res
+
+class Geometric:
+
+    def clusters(self,N):
+        res = [(N,1),]
+        i = 2
+        sqrtN = N ** (0.5)
+        while i < sqrtN:
+            if N % i == 0:
+                res.append((N/i,i))
+            i += 1
+        if i*i == N:
+            res.append((int(sqrtN),int(sqrtN)))
+
+        return res
+
