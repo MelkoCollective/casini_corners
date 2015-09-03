@@ -19,6 +19,29 @@ def circle_lattice(L): #borrowed from calculate.py
     coords = [sp.array(i) for i in unique_tuples]
     return coords
 
+def circle_pointsin(rad, Lx, Ly): #This is Anushya Chandran's circle
+    """
+    rad: Radius
+    Lx: total number of rows
+    Ly: total number of columns
+    
+    Returns a Lx X Ly array with 1s where the circle is.
+    """
+    
+    #First the canonical circle with center coordinates (Lx/2, Ly/2)
+    (cols, rows) = np.meshgrid( np.arange(Ly),np.arange(Lx))
+    
+    distances = np.sqrt( (cols - Ly/2)**2 + (rows - Lx/2)**2 )
+    
+    mask = distances<rad
+    #print(mask)
+    mask2 = np.asarray(mask,dtype=int) #mask.astype(int)
+    #print(mask2)
+    
+    #tmpmask = np.roll(mask, 0 - Ly/2, axis=1)
+    #return np.roll(mask, 0 - Lx/2, axis=0)    
+    return mask2
+
 
 def cluster_cuts(Cx,Cy,Lx,Ly,latt):
  
@@ -38,21 +61,26 @@ def main():
 
    Cx=2;   #the linear dimensions of a cluster
    Cy=2;
-   R = 4  #this is the radius of the circle
+   R = 3  #this is the radius of the circle
 
    Lx = 2*R+2*Cx+1  # this specifies an Lx x Ly lattice to embed the circle in
    Ly = 2*R+2*Cy+1  
 
-   c = circle_lattice( R )
-
+   c = circle_lattice( R ) #This creates the Bresenham circle
    lattice = sp.zeros( (Ly,Lx), dtype = 'int' )
-
    for i in c:
        lattice[ i[0]+R+Cy,i[1]+R+Cx ] = 1 # + count  #This assigns '1' to the region A, offset by R
+   np.savetxt('test1.out', lattice, delimiter=' ', fmt='%i') #save to plain text
 
-   cluster_cuts(Cx,Cy,Lx,Ly,lattice)  #generate all cuts
+   #cluster_cuts(Cx,Cy,Lx,Ly,lattice)  #generate all cuts
 
-   np.savetxt('test.out', lattice, delimiter=' ', fmt='%i') #save to plain text
+   #below, compare to the in-R circle
+
+   d = circle_pointsin(R+1,Lx,Ly)
+   #lattice2 = sp.zeros( (Ly,Lx))
+   #for i in d:
+   #    lattice2[ i[0]+R+Cy,i[1]+R+Cx ] = 1 # + count  #This assigns '1' to the region A, offset by R
+   np.savetxt('test2.out', d, delimiter=' ', fmt='%i') #save to plain text
 
 
 if __name__ == '__main__':    
